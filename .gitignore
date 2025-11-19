@@ -1,0 +1,44 @@
+# ============================
+# Maven Build Files
+# ============================
+target/
+.m2/
+*.jar
+*.war
+*.ear
+
+# ============================
+# IDE Configuration
+# ============================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+*.iws
+*.ipr
+
+# ============================
+# Environment Variables & Secrets
+# ============================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# ============================
+# Logs
+# ============================
+logs/
+*.log
+spring.log
+
+# ============================
+# Temporary Files
+# ============================
+tmp/
+temp/
+*.bak
