@@ -1,0 +1,93 @@
+# ============================
+# Base Application Configuration
+# ============================
+spring:
+  application:
+    name: wallet-api
+    version: 1.0.0
+
+  # ============================
+  # Database Configuration
+  # ============================
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:wallet_db}
+    username: ${DB_USER:wallet_user}
+    password: ${DB_PASSWORD:wallet_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # ============================
+  # Flyway Configuration (Database Migrations)
+  # ============================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # ============================
+  # Security Configuration
+  # ============================
+  security:
+    user:
+      name: admin
+      password: admin123
+
+# ============================
+# Server Configuration
+# ============================
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# ============================
+# Logging Configuration
+# ============================
+logging:
+  level:
+    root: INFO
+    com.payflow: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+
+# ============================
+# Custom Application Properties
+# ============================
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-super-secret-key}
+    expiration: 86400000  # 24 hours in milliseconds
+
+  security:
+    cors:
+      allowed-origins: http://localhost:3000,http://localhost:4200
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: '*'
+      allow-credentials: true
+      max-age: 3600
+
+  # Exchange Rate API Configuration
+  exchange-rate:
+    api-url: ${EXCHANGE_RATE_API_URL:https://api.exchangerate-api.com/v4/latest}
+    api-key: ${EXCHANGE_RATE_API_KEY:}
+    cache-duration-minutes: 5
+
+# ============================
+# OpenAPI/Swagger Configuration
+# ============================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha

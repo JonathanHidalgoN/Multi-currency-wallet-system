@@ -1,0 +1,34 @@
+# ============================
+# Development Profile Configuration
+# Overrides base application.yml for local development
+# ============================
+
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        generate_statistics: true
+
+logging:
+  level:
+    root: INFO
+    com.payflow: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# ============================
+# JWT Configuration for Development
+# ============================
+app:
+  jwt:
+    secret: dev-secret-key-for-testing-only
+    expiration: 604800000  # 7 days for easier testing
+
+  security:
+    cors:
+      allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:5173
+      allow-credentials: true
