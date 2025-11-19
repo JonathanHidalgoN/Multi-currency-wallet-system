@@ -19,6 +19,11 @@ target/
 *.iml
 *.iws
 *.ipr
+.classpath
+.factorypath
+.mvn/
+.project
+.settings/
 
 # ============================
 # Environment Variables & Secrets
