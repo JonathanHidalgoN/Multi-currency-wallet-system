@@ -1,6 +1,7 @@
 package com.payflow.controller;
 
 import com.payflow.DTOS.DepositRequest;
+import com.payflow.DTOS.TransactionDTO;
 import com.payflow.DTOS.WithdrawRequest;
 import com.payflow.DTOS.TransferRequest;
 import com.payflow.entity.Transaction;
@@ -123,7 +124,7 @@ public class TransactionController {
   }
 
   @GetMapping("/history")
-  public ResponseEntity<Page<Transaction>> getTransactionHistory(
+  public ResponseEntity<Page<TransactionDTO>> getTransactionHistory(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
@@ -134,7 +135,16 @@ public class TransactionController {
     Pageable pageable = PageRequest.of(page, size);
     Page<Transaction> transactions = transactionService.getTransactionHistory(wallet, pageable);
 
-    return ResponseEntity.ok(transactions);
+    Page<TransactionDTO> dtoPage = transactions.map(t -> new TransactionDTO(
+        t.getTransactionId(),
+        t.getType().toString(),
+        t.getAmount(),
+        t.getCurrency(),
+        t.getStatus().toString(),
+        t.getCreatedAt()
+    ));
+
+    return ResponseEntity.ok(dtoPage);
   }
 
   private BigDecimal getExchangeRate(String fromCurrency, String toCurrency) {
