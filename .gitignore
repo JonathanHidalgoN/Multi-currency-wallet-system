@@ -47,3 +47,454 @@ spring.log
 tmp/
 temp/
 *.bak
+================================================================================
+                    PAYFLOW WALLET API - USEFUL COMMANDS
+================================================================================
+
+PROJECT SETUP & BUILD
+================================================================================
+
+1. Clean and compile the project
+   mvn clean compile
+
+2. Package the application into executable JAR (56MB)
+   mvn clean package
+
+3. Run all tests
+   mvn test
+
+4. Run specific test class
+   mvn test -Dtest=UserServiceTest
+
+5. Run specific test method
+   mvn test -Dtest=UserServiceTest#testRegisterUser
+
+6. Generate test coverage report (creates target/site/jacoco/index.html)
+   mvn test jacoco:report
+
+7. Check for dependency updates
+   mvn versions:display-dependency-updates
+
+8. Build without running tests (faster)
+   mvn clean package -DskipTests
+
+================================================================================
+RUNNING THE APPLICATION
+================================================================================
+
+1. Run with Maven Spring Boot plugin (directly from source)
+   mvn spring-boot:run
+
+2. Run packaged JAR file
+   java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+3. Run with custom port
+   java -jar target/wallet-api-1.0-SNAPSHOT.jar --server.port=9090
+
+4. Run in background (Linux/Mac)
+   nohup java -jar target/wallet-api-1.0-SNAPSHOT.jar > app.log 2>&1 &
+
+5. View running logs
+   tail -f app.log
+
+6. Kill the running application
+   pkill -f wallet-api-1.0-SNAPSHOT.jar
+
+7. Check which process is using port 8080
+   lsof -i :8080
+
+8. Kill process on port 8080
+   lsof -ti:8080 | xargs kill -9
+
+================================================================================
+DATABASE & DOCKER
+================================================================================
+
+1. Start PostgreSQL and database containers
+   docker-compose up -d
+
+2. Stop all containers
+   docker-compose down
+
+3. View container logs
+   docker-compose logs -f
+
+4. Connect to PostgreSQL database (interactive)
+   docker exec -it wallet-postgres psql -U postgres -d wallet_db
+
+5. List all containers
+   docker-compose ps
+
+6. Restart containers
+   docker-compose restart
+
+7. Remove all containers and volumes (WARNING: deletes data)
+   docker-compose down -v
+
+8. View database schema (from PostgreSQL CLI)
+   \dt                    # List all tables
+   \d users               # Show users table structure
+   \d+ wallet_balances    # Show wallet_balances table with details
+
+================================================================================
+API TESTING
+================================================================================
+
+1. Register a new user
+   curl -X POST http://localhost:8080/api/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "user@example.com",
+       "password": "securePassword123",
+       "fullName": "John Doe"
+     }'
+
+2. Login and get JWT token
+   curl -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "user@example.com",
+       "password": "securePassword123"
+     }'
+
+3. Get wallet info (requires token from login)
+   curl -X GET http://localhost:8080/api/wallets/me \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+4. Get balance for specific currency
+   curl -X GET "http://localhost:8080/api/wallets/me/balance?currency=USD" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+5. Get all balances
+   curl -X GET http://localhost:8080/api/wallets/me/balances \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+6. Deposit money
+   curl -X POST http://localhost:8080/api/transactions/deposit \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "amount": 1000.50,
+       "currency": "USD"
+     }'
+
+7. Withdraw money
+   curl -X POST http://localhost:8080/api/transactions/withdraw \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "amount": 500.00,
+       "currency": "USD"
+     }'
+
+8. Transfer money to another user (USD to EUR)
+   curl -X POST http://localhost:8080/api/transactions/transfer \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "recipientUserId": 2,
+       "senderCurrency": "USD",
+       "recipientCurrency": "EUR",
+       "amount": 100.00
+     }'
+
+9. Get transaction history (paginated)
+   curl -X GET "http://localhost:8080/api/transactions/history?page=0&size=10" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+10. Access Swagger UI documentation
+    Open browser: http://localhost:8080/swagger-ui.html
+
+11. View OpenAPI JSON spec
+    curl http://localhost:8080/v3/api-docs
+
+================================================================================
+MAVEN USEFUL COMMANDS
+================================================================================
+
+1. Download all dependencies
+   mvn dependency:resolve
+
+2. Display dependency tree (shows all transitive dependencies)
+   mvn dependency:tree
+
+3. Check for duplicate dependencies
+   mvn dependency:analyze
+
+4. Format code (if maven-fmt-plugin is configured)
+   mvn fmt:format
+
+5. Check for code style issues
+   mvn checkstyle:check
+
+6. Validate project structure
+   mvn validate
+
+7. Install project locally (for use in other projects)
+   mvn install
+
+8. Deploy to repository
+   mvn deploy
+
+9. Create project documentation
+   mvn site
+
+10. Run integration tests only
+    mvn verify -Dskip.unit.tests=true
+
+================================================================================
+GIT OPERATIONS
+================================================================================
+
+1. Check git status
+   git status
+
+2. View git log
+   git log --oneline -10
+
+3. See what changed in last commit
+   git show HEAD
+
+4. Diff between working directory and staging
+   git diff
+
+5. Diff between staging and last commit
+   git diff --staged
+
+6. Create a new branch
+   git checkout -b feature/jwt-auth
+
+7. Switch to branch
+   git checkout main
+
+8. Merge branch into main
+   git checkout main && git merge feature/jwt-auth
+
+9. Delete branch
+   git branch -d feature/jwt-auth
+
+================================================================================
+DEVELOPMENT WORKFLOW
+================================================================================
+
+1. Full development cycle (compile, test, package)
+   mvn clean compile test package
+
+2. Quick compile after code changes
+   mvn compile
+
+3. Run tests after changes
+   mvn test
+
+4. Rebuild and restart application (terminal 1)
+   mvn clean package && java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+5. In another terminal, test the API
+   curl http://localhost:8080/swagger-ui.html
+
+6. Build jar and skip tests (faster)
+   mvn clean package -DskipTests
+
+7. Start everything fresh
+   docker-compose down -v && docker-compose up -d && mvn clean package && java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+================================================================================
+TROUBLESHOOTING COMMANDS
+================================================================================
+
+1. Check if port 8080 is in use
+   lsof -i :8080
+
+2. See all Java processes
+   jps -l
+
+3. Monitor memory usage of Java app
+   jstat -gc <pid> 1000
+
+4. View application logs in real-time
+   tail -f app.log
+
+5. Clear Maven cache (clears ~/.m2/repository)
+   rm -rf ~/.m2/repository
+
+6. Rebuild without using cache
+   mvn clean install
+
+7. Test database connection (from inside container)
+   docker exec wallet-postgres psql -U postgres -c "SELECT version();"
+
+8. Check environment variables set for app
+   env | grep JWT
+
+9. See all Spring beans loaded
+   Add to application.yml:
+   logging:
+     level:
+       org.springframework.context: DEBUG
+
+10. Check Maven version
+    mvn --version
+
+11. Check Java version
+    java -version
+
+12. Check if Lombok is still referenced
+    grep -r "lombok" src/
+
+================================================================================
+IDE / NVIM SPECIFIC COMMANDS
+================================================================================
+
+1. Generate Maven project structure
+   mvn archetype:generate -DgroupId=com.payflow -DartifactId=wallet-api
+
+2. Generate IDE files for IntelliJ
+   mvn idea:idea
+
+3. Generate IDE files for Eclipse
+   mvn eclipse:eclipse
+
+4. Clear IDE metadata
+   mvn clean eclipse:clean
+
+5. View Maven project info
+   mvn help:active-profiles
+
+6. Describe a Maven plugin
+   mvn help:describe -Dplugin=org.apache.maven.plugins:maven-compiler-plugin
+
+================================================================================
+SECURITY & TESTING QUICK REFERENCE
+================================================================================
+
+1. Generate a strong JWT_SECRET for .env (64 characters)
+   openssl rand -base64 48
+
+2. Test JWT token validation
+   # Copy token from login response and use in curl:
+   curl -X GET http://localhost:8080/api/wallets/me \
+     -H "Authorization: Bearer <paste_token_here>"
+
+3. Test with expired/invalid token (should return 401)
+   curl -X GET http://localhost:8080/api/wallets/me \
+     -H "Authorization: Bearer invalid.token.here"
+
+4. Test without token (should return 401)
+   curl -X GET http://localhost:8080/api/wallets/me
+
+5. Test with malformed header
+   curl -X GET http://localhost:8080/api/wallets/me \
+     -H "Authorization: InvalidTokenHere"
+
+6. Run security-focused tests only
+   mvn test -Dtest=*Security*
+
+================================================================================
+PERFORMANCE & MONITORING
+================================================================================
+
+1. Monitor application during startup
+   mvn spring-boot:run -Dspring-boot.run.arguments="--debug"
+
+2. Generate heap dump on OutOfMemory
+   java -XX:+HeapDumpOnOutOfMemoryError \
+        -XX:HeapDumpPath=./heapdump.hprof \
+        -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+3. Monitor CPU and memory usage (Linux)
+   top -p $(pgrep -f wallet-api)
+
+4. Check application startup time
+   grep "Started" app.log
+
+5. Enable detailed Spring Web logs
+   Add to application.yml:
+   logging:
+     level:
+       org.springframework.web: DEBUG
+
+================================================================================
+HELPFUL BASH ALIASES (Add to ~/.bashrc or ~/.zshrc)
+================================================================================
+
+alias mvn-build="mvn clean compile"
+alias mvn-test="mvn test"
+alias mvn-package="mvn clean package -DskipTests"
+alias mvn-full="mvn clean package"
+alias app-start="java -jar target/wallet-api-1.0-SNAPSHOT.jar"
+alias db-start="docker-compose up -d"
+alias db-stop="docker-compose down"
+alias db-logs="docker-compose logs -f"
+alias kill-8080="lsof -ti:8080 | xargs kill -9"
+alias wallet-dev="mvn-package && app-start"
+
+# Usage examples:
+# mvn-build && app-start
+# wallet-dev (builds and starts in one command)
+
+================================================================================
+USEFUL FILE PATHS
+================================================================================
+
+Application JAR:        target/wallet-api-1.0-SNAPSHOT.jar
+POM.xml:               pom.xml
+Application config:    src/main/resources/application.yml
+Dev config:            src/main/resources/application-dev.yml
+Database migrations:   src/main/resources/db/migration/
+Environment vars:      .env
+Docker config:         docker-compose.yml
+This file:             usefulCommands.txt
+
+Source directories:
+  Java sources:        src/main/java/com/payflow/
+  Test sources:        src/test/java/com/payflow/
+  Resources:           src/main/resources/
+  Test resources:      src/test/resources/
+
+Build artifacts:
+  Compiled classes:    target/classes/
+  Test classes:        target/test-classes/
+  JAR file:            target/wallet-api-1.0-SNAPSHOT.jar
+  Test coverage:       target/site/jacoco/index.html
+
+================================================================================
+QUICK START (Complete Setup in Minutes)
+================================================================================
+
+Terminal 1 - Start Database:
+  docker-compose up -d
+
+Terminal 2 - Start Application:
+  mvn clean package -DskipTests && \
+  java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+Terminal 3 - Test API:
+  http://localhost:8080/swagger-ui.html
+
+Or use combined command:
+  docker-compose up -d && mvn clean package -DskipTests && \
+  java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+================================================================================
+ONE-LINER COMMANDS (Copy & Paste)
+================================================================================
+
+# Build everything and start
+docker-compose down && docker-compose up -d && mvn clean package -DskipTests && java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+# Quick rebuild and restart
+mvn clean package -DskipTests && java -jar target/wallet-api-1.0-SNAPSHOT.jar
+
+# Test API after starting
+curl -X POST http://localhost:8080/api/auth/register -H "Content-Type: application/json" -d '{"email":"test@test.com","password":"Test123!","fullName":"Test User"}'
+
+# View last 20 lines of logs
+tail -20 app.log
+
+# Search logs for errors
+grep -i "error" app.log
+
+# Kill app and database
+pkill -f wallet-api && docker-compose down
+
+================================================================================
