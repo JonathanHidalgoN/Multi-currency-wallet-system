@@ -1,9 +1,5 @@
 package com.payflow.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,10 +11,6 @@ import java.util.Map;
 
 @Entity
 @Table(name = "wallets")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Wallet {
 
   @Id
@@ -45,6 +37,109 @@ public class Wallet {
 
   @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
   private java.util.List<Transaction> transactions;
+
+  // Getters and Setters
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public Map<String, BigDecimal> getBalances() {
+    return balances;
+  }
+
+  public void setBalances(Map<String, BigDecimal> balances) {
+    this.balances = balances;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
+  public java.util.List<Transaction> getTransactions() {
+    return transactions;
+  }
+
+  public void setTransactions(java.util.List<Transaction> transactions) {
+    this.transactions = transactions;
+  }
+
+  public static WalletBuilder builder() {
+    return new WalletBuilder();
+  }
+
+  public static class WalletBuilder {
+    private Long id;
+    private User user;
+    private Map<String, BigDecimal> balances = new HashMap<>();
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private java.util.List<Transaction> transactions;
+
+    public WalletBuilder id(Long id) {
+      this.id = id;
+      return this;
+    }
+
+    public WalletBuilder user(User user) {
+      this.user = user;
+      return this;
+    }
+
+    public WalletBuilder balances(Map<String, BigDecimal> balances) {
+      this.balances = balances;
+      return this;
+    }
+
+    public WalletBuilder createdAt(LocalDateTime createdAt) {
+      this.createdAt = createdAt;
+      return this;
+    }
+
+    public WalletBuilder updatedAt(LocalDateTime updatedAt) {
+      this.updatedAt = updatedAt;
+      return this;
+    }
+
+    public WalletBuilder transactions(java.util.List<Transaction> transactions) {
+      this.transactions = transactions;
+      return this;
+    }
+
+    public Wallet build() {
+      Wallet wallet = new Wallet();
+      wallet.id = this.id;
+      wallet.user = this.user;
+      wallet.balances = this.balances != null ? this.balances : new HashMap<>();
+      wallet.createdAt = this.createdAt;
+      wallet.updatedAt = this.updatedAt;
+      wallet.transactions = this.transactions;
+      return wallet;
+    }
+  }
 
   public BigDecimal getBalance(String currency) {
     return balances.getOrDefault(currency, BigDecimal.ZERO);
