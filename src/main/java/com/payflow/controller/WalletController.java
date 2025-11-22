@@ -1,5 +1,8 @@
 package com.payflow.controller;
 
+import com.payflow.DTOS.BalanceResponse;
+import com.payflow.DTOS.BalancesResponse;
+import com.payflow.DTOS.FullWalletResponse;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.services.UserService;
@@ -9,8 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -25,24 +26,25 @@ public class WalletController {
   }
 
   @GetMapping("/me")
-  public ResponseEntity<Map<String, Object>> getMyWallet(
+  public ResponseEntity<FullWalletResponse> getMyWallet(
       Authentication authentication) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUser(user);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("id", wallet.getId());
-    response.put("userId", user.getId());
-    response.put("balances", wallet.getBalances());
-    response.put("createdAt", wallet.getCreatedAt());
-    response.put("updatedAt", wallet.getUpdatedAt());
+    FullWalletResponse response = new FullWalletResponse(
+        wallet.getId(),
+        user.getId(),
+        wallet.getBalances(),
+        wallet.getCreatedAt(),
+        wallet.getUpdatedAt()
+    );
 
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/me/balance")
-  public ResponseEntity<Map<String, Object>> getBalance(
+  public ResponseEntity<BalanceResponse> getBalance(
       Authentication authentication,
       @RequestParam String currency) {
 
@@ -51,23 +53,19 @@ public class WalletController {
 
     BigDecimal balance = walletService.getBalance(wallet, currency);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("currency", currency);
-    response.put("balance", balance);
+    BalanceResponse response = new BalanceResponse(currency, balance);
 
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/me/balances")
-  public ResponseEntity<Map<String, Object>> getAllBalances(
+  public ResponseEntity<BalancesResponse> getAllBalances(
       Authentication authentication) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUser(user);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("walletId", wallet.getId());
-    response.put("balances", wallet.getBalances());
+    BalancesResponse response = new BalancesResponse(wallet.getId(), wallet.getBalances());
 
     return ResponseEntity.ok(response);
   }

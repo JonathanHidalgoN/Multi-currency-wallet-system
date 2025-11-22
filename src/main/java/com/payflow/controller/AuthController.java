@@ -1,7 +1,9 @@
 package com.payflow.controller;
 
+import com.payflow.DTOS.AuthResponse;
 import com.payflow.DTOS.LoginRequest;
 import com.payflow.DTOS.RegisterRequest;
+import com.payflow.DTOS.UserResponse;
 import com.payflow.entity.User;
 import com.payflow.security.JwtTokenProvider;
 import com.payflow.services.UserService;
@@ -11,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,7 +30,7 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<Map<String, Object>> register(
+  public ResponseEntity<UserResponse> register(
       @Valid @RequestBody RegisterRequest request) {
 
     User user = userService.registerUser(
@@ -38,17 +38,17 @@ public class AuthController {
         request.password(),
         request.fullName());
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("id", user.getId());
-    response.put("email", user.getEmail());
-    response.put("fullName", user.getFullName());
-    response.put("message", "User registered successfully");
+    UserResponse response = new UserResponse(
+        user.getId(),
+        user.getEmail(),
+        user.getFullName()
+    );
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Map<String, Object>> login(
+  public ResponseEntity<AuthResponse> login(
       @Valid @RequestBody LoginRequest request) {
 
     User user = userService.findByEmail(request.email())
@@ -60,12 +60,13 @@ public class AuthController {
 
     String token = jwtTokenProvider.generateToken(user.getId());
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("id", user.getId());
-    response.put("email", user.getEmail());
-    response.put("fullName", user.getFullName());
-    response.put("token", token);
-    response.put("message", "Login successful");
+    AuthResponse response = new AuthResponse(
+        user.getId(),
+        user.getEmail(),
+        user.getFullName(),
+        token,
+        "Login successful"
+    );
 
     return ResponseEntity.ok(response);
   }

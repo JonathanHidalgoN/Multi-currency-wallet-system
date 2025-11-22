@@ -1,5 +1,6 @@
 package com.payflow.exception;
 
+import com.payflow.DTOS.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,50 +19,57 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, Object>> handleValidationExceptions(
+  public ResponseEntity<ErrorResponse> handleValidationExceptions(
       MethodArgumentNotValidException ex, WebRequest request) {
 
-    Map<String, Object> response = new HashMap<>();
     Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getFieldErrors()
+        .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-    ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
-    response.put("status", HttpStatus.BAD_REQUEST.value());
-    response.put("message", "Validation failed");
-    response.put("errors", errors);
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(),
+        "Validation failed",
+        errors
+    );
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
+  public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
       IllegalArgumentException ex, WebRequest request) {
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", HttpStatus.UNAUTHORIZED.value());
-    response.put("message", ex.getMessage());
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.UNAUTHORIZED.value(),
+        ex.getMessage(),
+        new HashMap<>()
+    );
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler(RuntimeException.class)
-  public ResponseEntity<Map<String, Object>> handleRuntimeException(
+  public ResponseEntity<ErrorResponse> handleRuntimeException(
       RuntimeException ex, WebRequest request) {
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", HttpStatus.BAD_REQUEST.value());
-    response.put("message", ex.getMessage());
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(),
+        ex.getMessage(),
+        new HashMap<>()
+    );
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, Object>> handleGlobalException(
+  public ResponseEntity<ErrorResponse> handleGlobalException(
       Exception ex, WebRequest request) {
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-    response.put("message", "An unexpected error occurred");
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        "An unexpected error occurred",
+        new HashMap<>()
+    );
 
     return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
   }

@@ -2,8 +2,10 @@ package com.payflow.controller;
 
 import com.payflow.DTOS.DepositRequest;
 import com.payflow.DTOS.TransactionDTO;
-import com.payflow.DTOS.WithdrawRequest;
+import com.payflow.DTOS.TransactionResponse;
 import com.payflow.DTOS.TransferRequest;
+import com.payflow.DTOS.TransferResponse;
+import com.payflow.DTOS.WithdrawRequest;
 import com.payflow.entity.Transaction;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
@@ -39,7 +41,7 @@ public class TransactionController {
   }
 
   @PostMapping("/deposit")
-  public ResponseEntity<Map<String, Object>> deposit(
+  public ResponseEntity<TransactionResponse> deposit(
       Authentication authentication,
       @Valid @RequestBody DepositRequest request) {
 
@@ -51,19 +53,20 @@ public class TransactionController {
         request.currency(),
         request.amount());
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("transactionId", transaction.getTransactionId());
-    response.put("type", transaction.getType());
-    response.put("amount", transaction.getAmount());
-    response.put("currency", transaction.getCurrency());
-    response.put("status", transaction.getStatus());
-    response.put("timestamp", transaction.getCreatedAt());
+    TransactionResponse response = new TransactionResponse(
+        transaction.getTransactionId(),
+        transaction.getType().toString(),
+        transaction.getAmount(),
+        transaction.getCurrency(),
+        transaction.getStatus().toString(),
+        transaction.getCreatedAt()
+    );
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PostMapping("/withdraw")
-  public ResponseEntity<Map<String, Object>> withdraw(
+  public ResponseEntity<TransactionResponse> withdraw(
       Authentication authentication,
       @Valid @RequestBody WithdrawRequest request) {
 
@@ -75,19 +78,20 @@ public class TransactionController {
         request.currency(),
         request.amount());
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("transactionId", transaction.getTransactionId());
-    response.put("type", transaction.getType());
-    response.put("amount", transaction.getAmount());
-    response.put("currency", transaction.getCurrency());
-    response.put("status", transaction.getStatus());
-    response.put("timestamp", transaction.getCreatedAt());
+    TransactionResponse response = new TransactionResponse(
+        transaction.getTransactionId(),
+        transaction.getType().toString(),
+        transaction.getAmount(),
+        transaction.getCurrency(),
+        transaction.getStatus().toString(),
+        transaction.getCreatedAt()
+    );
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PostMapping("/transfer")
-  public ResponseEntity<Map<String, Object>> transfer(
+  public ResponseEntity<TransferResponse> transfer(
       Authentication authentication,
       @Valid @RequestBody TransferRequest request) {
 
@@ -107,18 +111,19 @@ public class TransactionController {
         request.amount(),
         exchangeRate);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("transactionId", transaction.getTransactionId());
-    response.put("type", transaction.getType());
-    response.put("senderCurrency", transaction.getCurrency());
-    response.put("senderAmount", transaction.getAmount());
-    response.put("fee", transaction.getFee());
-    response.put("totalDebit", transaction.getAmount().add(transaction.getFee()));
-    response.put("recipientCurrency", transaction.getRecipientCurrency());
-    response.put("recipientAmount", transaction.getAmount().multiply(exchangeRate));
-    response.put("exchangeRate", exchangeRate);
-    response.put("status", transaction.getStatus());
-    response.put("timestamp", transaction.getCreatedAt());
+    TransferResponse response = new TransferResponse(
+        transaction.getTransactionId(),
+        transaction.getType().toString(),
+        transaction.getCurrency(),
+        transaction.getAmount(),
+        transaction.getFee(),
+        transaction.getAmount().add(transaction.getFee()),
+        transaction.getRecipientCurrency(),
+        transaction.getAmount().multiply(exchangeRate),
+        exchangeRate,
+        transaction.getStatus().toString(),
+        transaction.getCreatedAt()
+    );
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
