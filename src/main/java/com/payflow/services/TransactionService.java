@@ -6,6 +6,8 @@ import com.payflow.entity.User;
 import com.payflow.repository.ITransactionRepository;
 
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 @Service
 @Transactional
 public class TransactionService {
+
+  private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
   private final ITransactionRepository transactionRepository;
   private final WalletService walletService;
@@ -41,12 +45,15 @@ public class TransactionService {
   }
 
   public Transaction deposit(Wallet wallet, String currency, BigDecimal amount) {
+    logger.info("Deposit initiated - Wallet ID: {}, Currency: {}, Amount: {}", wallet.getId(), currency, amount);
+
     validateAmount(amount);
 
     String transactionId = generateTransactionId();
 
     Optional<Transaction> existing = transactionRepository.findByTransactionId(transactionId);
     if (existing.isPresent()) {
+      logger.debug("Deposit already processed, returning existing transaction: {}", transactionId);
       return existing.get();
     }
 
@@ -63,13 +70,19 @@ public class TransactionService {
         .completedAt(LocalDateTime.now())
         .build();
 
-    return transactionRepository.save(transaction);
+    Transaction savedTransaction = transactionRepository.save(transaction);
+    logger.info("Deposit completed successfully - Transaction ID: {}, Amount: {} {}", transactionId, amount, currency);
+
+    return savedTransaction;
   }
 
   public Transaction withdraw(Wallet wallet, String currency, BigDecimal amount) {
+    logger.info("Withdrawal initiated - Wallet ID: {}, Currency: {}, Amount: {}", wallet.getId(), currency, amount);
+
     validateAmount(amount);
 
     if (!walletService.hasSufficientBalance(wallet, currency, amount)) {
+      logger.warn("Withdrawal rejected - Insufficient balance for Wallet ID: {}", wallet.getId());
       throw new IllegalArgumentException("Insufficient balance");
     }
 
@@ -88,7 +101,10 @@ public class TransactionService {
         .completedAt(LocalDateTime.now())
         .build();
 
-    return transactionRepository.save(transaction);
+    Transaction savedTransaction = transactionRepository.save(transaction);
+    logger.info("Withdrawal completed successfully - Transaction ID: {}, Amount: {} {}", transactionId, amount, currency);
+
+    return savedTransaction;
   }
 
   public Transaction transfer(
@@ -98,13 +114,18 @@ public class TransactionService {
       String recipientCurrency,
       BigDecimal amount,
       BigDecimal exchangeRate) {
+    logger.info("Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}",
+        senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate);
+
     validateAmount(amount);
 
     if (recipientUser == null) {
+      logger.warn("Transfer failed - Recipient not found for Sender ID: {}", senderUser.getId());
       throw new IllegalArgumentException("Recipient not found");
     }
 
     if (senderUser.getId().equals(recipientUser.getId())) {
+      logger.warn("Transfer rejected - Sender cannot transfer to themselves, User ID: {}", senderUser.getId());
       throw new IllegalArgumentException("Cannot transfer to yourself");
     }
 
@@ -113,16 +134,22 @@ public class TransactionService {
 
     BigDecimal fee = amount.multiply(new BigDecimal("0.015"));
     BigDecimal totalDebit = amount.add(fee);
+    logger.debug("Transfer fee calculated - Amount: {}, Fee: {}, Total Debit: {}", amount, fee, totalDebit);
 
     if (!walletService.hasSufficientBalance(senderWallet, senderCurrency, totalDebit)) {
+      logger.warn("Transfer rejected - Insufficient balance including fee for Sender ID: {}. Required: {}, Available: {}",
+          senderUser.getId(), totalDebit, walletService.getBalance(senderWallet, senderCurrency));
       throw new IllegalArgumentException("Insufficient balance for transfer (including fee)");
     }
 
     String transactionId = generateTransactionId();
+    logger.debug("Transfer transaction ID generated: {}", transactionId);
 
     walletService.subtractBalance(senderWallet, senderCurrency, totalDebit);
 
     BigDecimal convertedAmount = amount.multiply(exchangeRate);
+    logger.debug("Amount converted - Original: {} {}, Converted: {} {}", amount, senderCurrency, convertedAmount, recipientCurrency);
+
     walletService.addBalance(recipientWallet, recipientCurrency, convertedAmount);
 
     Transaction transaction = Transaction.builder()
@@ -140,7 +167,11 @@ public class TransactionService {
         .completedAt(LocalDateTime.now())
         .build();
 
-    return transactionRepository.save(transaction);
+    Transaction savedTransaction = transactionRepository.save(transaction);
+    logger.info("Transfer completed successfully - Transaction ID: {}, Sender ID: {}, Recipient ID: {}, Amount: {} {} → {} {}",
+        transactionId, senderUser.getId(), recipientUser.getId(), amount, senderCurrency, convertedAmount, recipientCurrency);
+
+    return savedTransaction;
   }
 
   public Optional<Transaction> getTransactionById(String transactionId) {

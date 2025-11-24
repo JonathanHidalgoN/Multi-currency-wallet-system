@@ -1,5 +1,7 @@
 package com.payflow.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class UserService {
+
+  private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
   private final IUserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -26,7 +30,10 @@ public class UserService {
   }
 
   public User registerUser(String email, String password, String fullName) {
+    logger.info("User registration attempt for email: {}", email);
+
     if (userRepository.existsByEmail(email)) {
+      logger.warn("Registration failed: email already exists: {}", email);
       throw new IllegalArgumentException("Email already exists");
     }
 
@@ -38,7 +45,11 @@ public class UserService {
         .build();
 
     User savedUser = userRepository.save(user);
+    logger.debug("User saved to database with ID: {}", savedUser.getId());
+
     walletService.createWalletForUser(savedUser);
+    logger.info("User registered successfully - ID: {}, Email: {}", savedUser.getId(), email);
+
     return savedUser;
   }
 
@@ -52,7 +63,10 @@ public class UserService {
 
   public User getUserById(Long userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        .orElseThrow(() -> {
+          logger.warn("User not found with ID: {}", userId);
+          return new IllegalArgumentException("User not found");
+        });
   }
 
   public boolean emailExists(String email) {
