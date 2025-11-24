@@ -13,8 +13,8 @@ import static org.mockito.Mockito.*;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.repository.IWalletRepository;
+import com.payflow.value.Money;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -107,10 +107,10 @@ class WalletServiceTest {
   @Test
   void shouldReturnBalanceForGivenCurrency() {
     String currency = "USD";
-    BigDecimal expectedBalance = new BigDecimal("100.00");
-    wallet.addBalance(currency, expectedBalance);
+    Money expectedBalance = Money.of("100.00", currency);
+    wallet.addBalance(expectedBalance);
 
-    BigDecimal result = walletService.getBalance(wallet, currency);
+    Money result = walletService.getBalance(wallet, currency);
 
     assertEquals(expectedBalance, result);
   }
@@ -118,11 +118,11 @@ class WalletServiceTest {
   @Test
   void shouldReturnTrueWhenSufficientBalance() {
     String currency = "USD";
-    BigDecimal balance = new BigDecimal("100.00");
-    BigDecimal requestedAmount = new BigDecimal("50.00");
-    wallet.addBalance(currency, balance);
+    Money balance = Money.of("100.00", currency);
+    Money requestedAmount = Money.of("50.00", currency);
+    wallet.addBalance(balance);
 
-    boolean result = walletService.hasSufficientBalance(wallet, currency, requestedAmount);
+    boolean result = walletService.hasSufficientBalance(wallet, requestedAmount);
 
     assertTrue(result);
   }
@@ -130,11 +130,11 @@ class WalletServiceTest {
   @Test
   void shouldReturnFalseWhenInsufficientBalance() {
     String currency = "USD";
-    BigDecimal balance = new BigDecimal("30.00");
-    BigDecimal requestedAmount = new BigDecimal("50.00");
-    wallet.addBalance(currency, balance);
+    Money balance = Money.of("30.00", currency);
+    Money requestedAmount = Money.of("50.00", currency);
+    wallet.addBalance(balance);
 
-    boolean result = walletService.hasSufficientBalance(wallet, currency, requestedAmount);
+    boolean result = walletService.hasSufficientBalance(wallet, requestedAmount);
 
     assertFalse(result);
   }
@@ -142,10 +142,10 @@ class WalletServiceTest {
   @Test
   void shouldReturnTrueWhenBalanceEqualsRequestedAmount() {
     String currency = "USD";
-    BigDecimal balance = new BigDecimal("50.00");
-    wallet.addBalance(currency, balance);
+    Money balance = Money.of("50.00", currency);
+    wallet.addBalance(balance);
 
-    boolean result = walletService.hasSufficientBalance(wallet, currency, balance);
+    boolean result = walletService.hasSufficientBalance(wallet, balance);
 
     assertTrue(result);
   }
@@ -153,54 +153,54 @@ class WalletServiceTest {
   @Test
   void shouldAddBalanceSuccessfully() {
     String currency = "USD";
-    BigDecimal initialAmount = new BigDecimal("100.00");
-    BigDecimal addAmount = new BigDecimal("50.00");
-    wallet.addBalance(currency, initialAmount);
+    Money initialAmount = Money.of("100.00", currency);
+    Money addAmount = Money.of("50.00", currency);
+    wallet.addBalance(initialAmount);
 
-    walletService.addBalance(wallet, currency, addAmount);
+    walletService.addBalance(wallet, addAmount);
 
-    BigDecimal expectedBalance = new BigDecimal("150.00");
-    assertEquals(expectedBalance, wallet.getBalance(currency));
+    Money expectedBalance = Money.of("150.00", currency);
+    assertEquals(expectedBalance, walletService.getBalance(wallet, currency));
     verify(walletRepository).save(wallet);
   }
 
   @Test
   void shouldSubtractBalanceSuccessfully() {
     String currency = "USD";
-    BigDecimal initialAmount = new BigDecimal("100.00");
-    BigDecimal subtractAmount = new BigDecimal("30.00");
-    wallet.addBalance(currency, initialAmount);
+    Money initialAmount = Money.of("100.00", currency);
+    Money subtractAmount = Money.of("30.00", currency);
+    wallet.addBalance(initialAmount);
 
-    walletService.subtractBalance(wallet, currency, subtractAmount);
+    walletService.subtractBalance(wallet, subtractAmount);
 
-    BigDecimal expectedBalance = new BigDecimal("70.00");
-    assertEquals(expectedBalance, wallet.getBalance(currency));
+    Money expectedBalance = Money.of("70.00", currency);
+    assertEquals(expectedBalance, walletService.getBalance(wallet, currency));
     verify(walletRepository).save(wallet);
   }
 
   @Test
   void shouldThrowExceptionWhenSubtractingMoreThanAvailable() {
     String currency = "USD";
-    BigDecimal initialAmount = new BigDecimal("30.00");
-    BigDecimal subtractAmount = new BigDecimal("50.00");
-    wallet.addBalance(currency, initialAmount);
+    Money initialAmount = Money.of("30.00", currency);
+    Money subtractAmount = Money.of("50.00", currency);
+    wallet.addBalance(initialAmount);
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> walletService.subtractBalance(wallet, currency, subtractAmount));
+        () -> walletService.subtractBalance(wallet, subtractAmount));
 
-    assertEquals(initialAmount, wallet.getBalance(currency));
+    assertEquals(initialAmount, walletService.getBalance(wallet, currency));
     verify(walletRepository, never()).save(wallet);
   }
 
   @Test
   void shouldThrowExceptionWhenSubtractingFromZeroBalance() {
     String currency = "USD";
-    BigDecimal subtractAmount = new BigDecimal("10.00");
+    Money subtractAmount = Money.of("10.00", currency);
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> walletService.subtractBalance(wallet, currency, subtractAmount));
+        () -> walletService.subtractBalance(wallet, subtractAmount));
 
     verify(walletRepository, never()).save(wallet);
   }
@@ -208,12 +208,12 @@ class WalletServiceTest {
   @Test
   void shouldSubtractExactBalanceSuccessfully() {
     String currency = "USD";
-    BigDecimal balance = new BigDecimal("50.00");
-    wallet.addBalance(currency, balance);
+    Money balance = Money.of("50.00", currency);
+    wallet.addBalance(balance);
 
-    walletService.subtractBalance(wallet, currency, balance);
+    walletService.subtractBalance(wallet, balance);
 
-    assertEquals(0, wallet.getBalance(currency).compareTo(BigDecimal.ZERO));
+    assertEquals(Money.zero(currency), walletService.getBalance(wallet, currency));
     verify(walletRepository).save(wallet);
   }
 }
