@@ -39,8 +39,8 @@ public class TransactionService {
   }
 
   private void validateAmount(BigDecimal amount) {
-    if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
-      throw new IllegalArgumentException("Amount must be at least $1");
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("Amount must be greater than zero");
     }
   }
 
@@ -102,7 +102,8 @@ public class TransactionService {
         .build();
 
     Transaction savedTransaction = transactionRepository.save(transaction);
-    logger.info("Withdrawal completed successfully - Transaction ID: {}, Amount: {} {}", transactionId, amount, currency);
+    logger.info("Withdrawal completed successfully - Transaction ID: {}, Amount: {} {}", transactionId, amount,
+        currency);
 
     return savedTransaction;
   }
@@ -114,15 +115,15 @@ public class TransactionService {
       String recipientCurrency,
       BigDecimal amount,
       BigDecimal exchangeRate) {
-    logger.info("Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}",
-        senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate);
-
     validateAmount(amount);
 
     if (recipientUser == null) {
       logger.warn("Transfer failed - Recipient not found for Sender ID: {}", senderUser.getId());
       throw new IllegalArgumentException("Recipient not found");
     }
+
+    logger.info("Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}",
+        senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate);
 
     if (senderUser.getId().equals(recipientUser.getId())) {
       logger.warn("Transfer rejected - Sender cannot transfer to themselves, User ID: {}", senderUser.getId());
@@ -137,7 +138,8 @@ public class TransactionService {
     logger.debug("Transfer fee calculated - Amount: {}, Fee: {}, Total Debit: {}", amount, fee, totalDebit);
 
     if (!walletService.hasSufficientBalance(senderWallet, senderCurrency, totalDebit)) {
-      logger.warn("Transfer rejected - Insufficient balance including fee for Sender ID: {}. Required: {}, Available: {}",
+      logger.warn(
+          "Transfer rejected - Insufficient balance including fee for Sender ID: {}. Required: {}, Available: {}",
           senderUser.getId(), totalDebit, walletService.getBalance(senderWallet, senderCurrency));
       throw new IllegalArgumentException("Insufficient balance for transfer (including fee)");
     }
@@ -148,7 +150,8 @@ public class TransactionService {
     walletService.subtractBalance(senderWallet, senderCurrency, totalDebit);
 
     BigDecimal convertedAmount = amount.multiply(exchangeRate);
-    logger.debug("Amount converted - Original: {} {}, Converted: {} {}", amount, senderCurrency, convertedAmount, recipientCurrency);
+    logger.debug("Amount converted - Original: {} {}, Converted: {} {}", amount, senderCurrency, convertedAmount,
+        recipientCurrency);
 
     walletService.addBalance(recipientWallet, recipientCurrency, convertedAmount);
 
@@ -168,8 +171,10 @@ public class TransactionService {
         .build();
 
     Transaction savedTransaction = transactionRepository.save(transaction);
-    logger.info("Transfer completed successfully - Transaction ID: {}, Sender ID: {}, Recipient ID: {}, Amount: {} {} → {} {}",
-        transactionId, senderUser.getId(), recipientUser.getId(), amount, senderCurrency, convertedAmount, recipientCurrency);
+    logger.info(
+        "Transfer completed successfully - Transaction ID: {}, Sender ID: {}, Recipient ID: {}, Amount: {} {} → {} {}",
+        transactionId, senderUser.getId(), recipientUser.getId(), amount, senderCurrency, convertedAmount,
+        recipientCurrency);
 
     return savedTransaction;
   }
