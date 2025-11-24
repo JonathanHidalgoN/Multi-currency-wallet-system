@@ -59,8 +59,7 @@ public class TransactionController {
         transaction.getAmount(),
         transaction.getCurrency(),
         transaction.getStatus().toString(),
-        transaction.getCreatedAt()
-    );
+        transaction.getCreatedAt());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -84,8 +83,7 @@ public class TransactionController {
         transaction.getAmount(),
         transaction.getCurrency(),
         transaction.getStatus().toString(),
-        transaction.getCreatedAt()
-    );
+        transaction.getCreatedAt());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -122,8 +120,7 @@ public class TransactionController {
         transaction.getAmount().multiply(exchangeRate),
         exchangeRate,
         transaction.getStatus().toString(),
-        transaction.getCreatedAt()
-    );
+        transaction.getCreatedAt());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -146,8 +143,7 @@ public class TransactionController {
         t.getAmount(),
         t.getCurrency(),
         t.getStatus().toString(),
-        t.getCreatedAt()
-    ));
+        t.getCreatedAt()));
 
     return ResponseEntity.ok(dtoPage);
   }
