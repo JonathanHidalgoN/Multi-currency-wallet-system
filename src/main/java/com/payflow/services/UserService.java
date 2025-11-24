@@ -54,14 +54,29 @@ public class UserService {
   }
 
   public Optional<User> findByEmail(String email) {
-    return userRepository.findByEmail(email);
+    logger.debug("Searching for user by email: {}", email);
+    Optional<User> user = userRepository.findByEmail(email);
+    if (user.isPresent()) {
+      logger.debug("User found by email: {}, User ID: {}", email, user.get().getId());
+    } else {
+      logger.debug("No user found with email: {}", email);
+    }
+    return user;
   }
 
   public Optional<User> findById(Long userId) {
-    return userRepository.findById(userId);
+    logger.debug("Searching for user by ID: {}", userId);
+    Optional<User> user = userRepository.findById(userId);
+    if (user.isPresent()) {
+      logger.debug("User found by ID: {}, Email: {}", userId, user.get().getEmail());
+    } else {
+      logger.debug("No user found with ID: {}", userId);
+    }
+    return user;
   }
 
   public User getUserById(Long userId) {
+    logger.debug("Fetching user by ID: {}", userId);
     return userRepository.findById(userId)
         .orElseThrow(() -> {
           logger.warn("User not found with ID: {}", userId);
@@ -70,6 +85,9 @@ public class UserService {
   }
 
   public boolean emailExists(String email) {
-    return userRepository.existsByEmail(email);
+    logger.debug("Checking if email exists: {}", email);
+    boolean exists = userRepository.existsByEmail(email);
+    logger.debug("Email existence check - Email: {}, Exists: {}", email, exists);
+    return exists;
   }
 }
