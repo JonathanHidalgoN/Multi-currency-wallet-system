@@ -18,6 +18,7 @@ import com.payflow.entity.Transaction;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.repository.ITransactionRepository;
+import com.payflow.value.Money;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -86,23 +87,33 @@ class TransactionServiceTest {
   }
 
   @Test
-  void shouldDepositSuccessfully() {
-    String currency = "USD";
-    BigDecimal amount = new BigDecimal("100.00");
+  void shouldDepositWithVariousAmounts() {
+    BigDecimal[] amounts = {
+        new BigDecimal("0.01"),      // small
+        new BigDecimal("123.45"),    // decimal
+        new BigDecimal("999999.99")  // large
+    };
 
-    when(transactionRepository.findByTransactionId(any())).thenReturn(Optional.empty());
-    when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
+      Transaction txn = invocation.getArgument(0);
+      return txn;
+    });
 
-    Transaction result = transactionService.deposit(wallet, currency, amount);
+    for (BigDecimal amount : amounts) {
+      Transaction result = transactionService.deposit(wallet, "USD", amount);
 
-    assertNotNull(result);
-    assertEquals(amount, result.getAmount());
-    assertEquals(currency, result.getCurrency());
-    assertEquals(Transaction.TransactionType.DEPOSIT, result.getType());
-    assertEquals(Transaction.TransactionStatus.COMPLETED, result.getStatus());
+      assertNotNull(result);
+      assertEquals(amount, result.getAmount());
+      assertEquals("USD", result.getCurrency());
+      assertEquals(Transaction.TransactionType.DEPOSIT, result.getType());
+      assertEquals(Transaction.TransactionStatus.COMPLETED, result.getStatus());
+      assertEquals(wallet.getId(), result.getWallet().getId());
+      assertNotNull(result.getTransactionId());
+      assertTrue(result.getTransactionId().startsWith("TXN-"));
+    }
 
-    verify(walletService).addBalance(wallet, currency, amount);
-    verify(transactionRepository).save(any(Transaction.class));
+    verify(walletService, times(3)).addBalance(eq(wallet), any(Money.class));
+    verify(transactionRepository, times(3)).save(any(Transaction.class));
   }
 
   @Test
@@ -115,7 +126,7 @@ class TransactionServiceTest {
         () -> transactionService.deposit(wallet, currency, amount));
 
     verify(transactionRepository, never()).save(any());
-    verify(walletService, never()).addBalance(any(), any(), any());
+    verify(walletService, never()).addBalance(any(), any());
   }
 
   @Test
@@ -128,69 +139,39 @@ class TransactionServiceTest {
         () -> transactionService.deposit(wallet, currency, amount));
 
     verify(transactionRepository, never()).save(any());
-    verify(walletService, never()).addBalance(any(), any(), any());
+    verify(walletService, never()).addBalance(any(), any());
   }
 
   @Test
-  void shouldDepositWithLargeAmount() {
-    String currency = "USD";
-    BigDecimal amount = new BigDecimal("999999.99");
+  void shouldWithdrawWithVariousAmounts() {
+    BigDecimal[] amounts = {
+        new BigDecimal("0.01"),      // small
+        new BigDecimal("50.50"),     // decimal
+        new BigDecimal("500000.99")  // large
+    };
 
-    Transaction largeTransaction = Transaction.builder()
-        .id(2L)
-        .transactionId("TXN-large-deposit")
-        .wallet(wallet)
-        .type(Transaction.TransactionType.DEPOSIT)
-        .status(Transaction.TransactionStatus.COMPLETED)
-        .amount(amount)
-        .currency(currency)
-        .createdAt(LocalDateTime.now())
-        .completedAt(LocalDateTime.now())
-        .build();
+    when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(true);
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
+      Transaction txn = invocation.getArgument(0);
+      return txn;
+    });
 
-    when(transactionRepository.findByTransactionId(any())).thenReturn(Optional.empty());
-    when(transactionRepository.save(any(Transaction.class))).thenReturn(largeTransaction);
+    for (BigDecimal amount : amounts) {
+      Transaction result = transactionService.withdraw(wallet, "USD", amount);
 
-    Transaction result = transactionService.deposit(wallet, currency, amount);
+      assertNotNull(result);
+      assertEquals(amount, result.getAmount());
+      assertEquals("USD", result.getCurrency());
+      assertEquals(Transaction.TransactionType.WITHDRAWAL, result.getType());
+      assertEquals(Transaction.TransactionStatus.COMPLETED, result.getStatus());
+      assertEquals(wallet.getId(), result.getWallet().getId());
+      assertNotNull(result.getTransactionId());
+      assertTrue(result.getTransactionId().startsWith("TXN-"));
+    }
 
-    assertNotNull(result);
-    assertEquals(amount, result.getAmount());
-
-    verify(walletService).addBalance(wallet, currency, amount);
-    verify(transactionRepository).save(any(Transaction.class));
-  }
-
-  @Test
-  void shouldWithdrawSuccessfully() {
-    String currency = "USD";
-    BigDecimal amount = new BigDecimal("50.00");
-
-    Transaction withdrawalTransaction = Transaction.builder()
-        .id(3L)
-        .transactionId("TXN-withdrawal")
-        .wallet(wallet)
-        .type(Transaction.TransactionType.WITHDRAWAL)
-        .status(Transaction.TransactionStatus.COMPLETED)
-        .amount(amount)
-        .currency(currency)
-        .createdAt(LocalDateTime.now())
-        .completedAt(LocalDateTime.now())
-        .build();
-
-    when(walletService.hasSufficientBalance(wallet, currency, amount)).thenReturn(true);
-    when(transactionRepository.save(any(Transaction.class))).thenReturn(withdrawalTransaction);
-
-    Transaction result = transactionService.withdraw(wallet, currency, amount);
-
-    assertNotNull(result);
-    assertEquals(amount, result.getAmount());
-    assertEquals(currency, result.getCurrency());
-    assertEquals(Transaction.TransactionType.WITHDRAWAL, result.getType());
-    assertEquals(Transaction.TransactionStatus.COMPLETED, result.getStatus());
-
-    verify(walletService).hasSufficientBalance(wallet, currency, amount);
-    verify(walletService).subtractBalance(wallet, currency, amount);
-    verify(transactionRepository).save(any(Transaction.class));
+    verify(walletService, times(3)).hasSufficientBalance(eq(wallet), any(Money.class));
+    verify(walletService, times(3)).subtractBalance(eq(wallet), any(Money.class));
+    verify(transactionRepository, times(3)).save(any(Transaction.class));
   }
 
   @Test
@@ -203,7 +184,7 @@ class TransactionServiceTest {
         () -> transactionService.withdraw(wallet, currency, amount));
 
     verify(transactionRepository, never()).save(any());
-    verify(walletService, never()).subtractBalance(any(), any(), any());
+    verify(walletService, never()).subtractBalance(any(), any());
   }
 
   @Test
@@ -211,14 +192,14 @@ class TransactionServiceTest {
     String currency = "USD";
     BigDecimal amount = new BigDecimal("100.00");
 
-    when(walletService.hasSufficientBalance(wallet, currency, amount)).thenReturn(false);
+    when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(false);
 
     assertThrows(
         IllegalArgumentException.class,
         () -> transactionService.withdraw(wallet, currency, amount));
 
-    verify(walletService).hasSufficientBalance(wallet, currency, amount);
-    verify(walletService, never()).subtractBalance(any(), any(), any());
+    verify(walletService).hasSufficientBalance(eq(wallet), any(Money.class));
+    verify(walletService, never()).subtractBalance(any(), any());
     verify(transactionRepository, never()).save(any());
   }
 
