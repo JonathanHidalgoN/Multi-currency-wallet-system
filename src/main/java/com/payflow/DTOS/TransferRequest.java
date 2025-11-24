@@ -1,8 +1,8 @@
 package com.payflow.DTOS;
 
-import jakarta.validation.constraints.NotBlank;
+import com.payflow.validation.ValidationAnnotations.ValidAmount;
+import com.payflow.validation.ValidationAnnotations.ValidCurrencyCode;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
@@ -13,13 +13,12 @@ public record TransferRequest(
     @NotNull(message = "Recipient user ID cannot be null")
     Long recipientUserId,
 
-    @NotBlank(message = "Sender currency cannot be blank")
+    @ValidCurrencyCode
     String senderCurrency,
 
-    @NotBlank(message = "Recipient currency cannot be blank")
+    @ValidCurrencyCode
     String recipientCurrency,
 
-    @NotNull(message = "Amount cannot be null")
-    @Positive(message = "Amount must be positive")
+    @ValidAmount
     BigDecimal amount
 ) {}

@@ -1,8 +1,7 @@
 package com.payflow.DTOS;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.payflow.validation.ValidationAnnotations.ValidAmount;
+import com.payflow.validation.ValidationAnnotations.ValidCurrencyCode;
 
 import java.math.BigDecimal;
 
@@ -10,10 +9,9 @@ import java.math.BigDecimal;
  * DTO for deposit requests
  */
 public record DepositRequest(
-    @NotNull(message = "Amount cannot be null")
-    @Positive(message = "Amount must be positive")
+    @ValidAmount
     BigDecimal amount,
 
-    @NotBlank(message = "Currency cannot be blank")
+    @ValidCurrencyCode
     String currency
 ) {}

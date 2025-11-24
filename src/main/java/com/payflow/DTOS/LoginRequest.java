@@ -1,3 +1,12 @@
 package com.payflow.DTOS;
 
-public record LoginRequest(String email, String password) {}
+import com.payflow.validation.ValidationAnnotations.ValidEmail;
+import com.payflow.validation.ValidationAnnotations.ValidPassword;
+
+public record LoginRequest(
+    @ValidEmail
+    String email,
+
+    @ValidPassword
+    String password
+) {}
