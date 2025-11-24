@@ -5,12 +5,9 @@ import com.payflow.validation.ValidationAnnotations.ValidPassword;
 import com.payflow.validation.ValidationAnnotations.ValidFullName;
 
 public record RegisterRequest(
-    @ValidEmail
-    String email,
+    @ValidEmail String email,
 
-    @ValidPassword
-    String password,
+    @ValidPassword String password,
 
-    @ValidFullName
-    String fullName
-) {}
+    @ValidFullName String fullName) {
+}
