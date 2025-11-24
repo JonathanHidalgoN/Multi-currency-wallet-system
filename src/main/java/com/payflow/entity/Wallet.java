@@ -3,6 +3,7 @@ package com.payflow.entity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.payflow.value.Money;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -141,17 +142,34 @@ public class Wallet {
     }
   }
 
-  public BigDecimal getBalance(String currency) {
-    return balances.getOrDefault(currency, BigDecimal.ZERO);
+  public Money getBalance(String currency) {
+    BigDecimal amount = balances.getOrDefault(currency, BigDecimal.ZERO);
+    return Money.of(amount, currency);
   }
 
-  public void addBalance(String currency, BigDecimal amount) {
-    BigDecimal current = getBalance(currency);
-    balances.put(currency, current.add(amount));
+  public void addBalance(Money money) {
+    if (money == null) {
+      throw new IllegalArgumentException("Money cannot be null");
+    }
+    Money current = getBalance(money.getCurrency());
+    balances.put(money.getCurrency(), current.add(money).getAmount());
   }
 
-  public void subtractBalance(String currency, BigDecimal amount) {
-    BigDecimal current = getBalance(currency);
-    balances.put(currency, current.subtract(amount));
+  public void subtractBalance(Money money) {
+    if (money == null) {
+      throw new IllegalArgumentException("Money cannot be null");
+    }
+    Money current = getBalance(money.getCurrency());
+    if (current.isLessThan(money)) {
+      throw new IllegalArgumentException("Insufficient balance");
+    }
+    balances.put(money.getCurrency(), current.subtract(money).getAmount());
+  }
+
+  public boolean hasSufficientBalance(Money money) {
+    if (money == null) {
+      throw new IllegalArgumentException("Money cannot be null");
+    }
+    return getBalance(money.getCurrency()).isGreaterThanOrEqual(money);
   }
 }
