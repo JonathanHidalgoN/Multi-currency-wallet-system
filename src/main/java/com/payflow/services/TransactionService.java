@@ -4,6 +4,7 @@ import com.payflow.entity.Transaction;
 import com.payflow.entity.Wallet;
 import com.payflow.entity.User;
 import com.payflow.repository.ITransactionRepository;
+import com.payflow.value.Money;
 
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -50,8 +51,9 @@ public class TransactionService {
     validateAmount(amount);
 
     String transactionId = generateTransactionId();
+    Money money = Money.of(amount, currency);
 
-    walletService.addBalance(wallet, currency, amount);
+    walletService.addBalance(wallet, money);
 
     Transaction transaction = Transaction.builder()
         .transactionId(transactionId)
@@ -75,14 +77,15 @@ public class TransactionService {
 
     validateAmount(amount);
 
-    if (!walletService.hasSufficientBalance(wallet, currency, amount)) {
+    String transactionId = generateTransactionId();
+    Money money = Money.of(amount, currency);
+
+    if (!walletService.hasSufficientBalance(wallet, money)) {
       logger.warn("Withdrawal rejected - Insufficient balance for Wallet ID: {}", wallet.getId());
       throw new IllegalArgumentException("Insufficient balance");
     }
 
-    String transactionId = generateTransactionId();
-
-    walletService.subtractBalance(wallet, currency, amount);
+    walletService.subtractBalance(wallet, money);
 
     Transaction transaction = Transaction.builder()
         .transactionId(transactionId)
@@ -122,11 +125,13 @@ public class TransactionService {
     Wallet senderWallet = walletService.getWalletByUser(senderUser);
     Wallet recipientWallet = walletService.getWalletByUser(recipientUser);
 
+    Money moneyAmount = Money.of(amount, senderCurrency);
     BigDecimal fee = amount.multiply(new BigDecimal("0.015"));
-    BigDecimal totalDebit = amount.add(fee);
-    logger.debug("Transfer fee calculated - Amount: {}, Fee: {}, Total Debit: {}", amount, fee, totalDebit);
+    Money moneyFee = Money.of(fee, senderCurrency);
+    Money totalDebit = moneyAmount.add(moneyFee);
+    logger.debug("Transfer fee calculated - Amount: {}, Fee: {}, Total Debit: {}", moneyAmount, moneyFee, totalDebit);
 
-    if (!walletService.hasSufficientBalance(senderWallet, senderCurrency, totalDebit)) {
+    if (!walletService.hasSufficientBalance(senderWallet, totalDebit)) {
       logger.warn(
           "Transfer rejected - Insufficient balance including fee for Sender ID: {}. Required: {}, Available: {}",
           senderUser.getId(), totalDebit, walletService.getBalance(senderWallet, senderCurrency));
@@ -136,13 +141,13 @@ public class TransactionService {
     String transactionId = generateTransactionId();
     logger.debug("Transfer transaction ID generated: {}", transactionId);
 
-    walletService.subtractBalance(senderWallet, senderCurrency, totalDebit);
+    walletService.subtractBalance(senderWallet, totalDebit);
 
     BigDecimal convertedAmount = amount.multiply(exchangeRate);
-    logger.debug("Amount converted - Original: {} {}, Converted: {} {}", amount, senderCurrency, convertedAmount,
-        recipientCurrency);
+    Money convertedMoney = Money.of(convertedAmount, recipientCurrency);
+    logger.debug("Amount converted - Original: {}, Converted: {}", moneyAmount, convertedMoney);
 
-    walletService.addBalance(recipientWallet, recipientCurrency, convertedAmount);
+    walletService.addBalance(recipientWallet, convertedMoney);
 
     Transaction transaction = Transaction.builder()
         .transactionId(transactionId)
@@ -161,9 +166,8 @@ public class TransactionService {
 
     Transaction savedTransaction = transactionRepository.save(transaction);
     logger.info(
-        "Transfer completed successfully - Transaction ID: {}, Sender ID: {}, Recipient ID: {}, Amount: {} {} → {} {}",
-        transactionId, senderUser.getId(), recipientUser.getId(), amount, senderCurrency, convertedAmount,
-        recipientCurrency);
+        "Transfer completed successfully - Transaction ID: {}, Sender ID: {}, Recipient ID: {}, Amount: {} → {}",
+        transactionId, senderUser.getId(), recipientUser.getId(), moneyAmount, convertedMoney);
 
     return savedTransaction;
   }
