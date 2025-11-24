@@ -2,6 +2,7 @@ package com.payflow.entity;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.payflow.value.Money;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -291,5 +292,24 @@ public class Transaction {
     PENDING,
     COMPLETED,
     FAILED
+  }
+
+  public Money getAmountMoney() {
+    return Money.of(amount, currency);
+  }
+
+  public Money getFeeMoney() {
+    if (fee == null) {
+      return null;
+    }
+    return Money.of(fee, currency);
+  }
+
+  public Money getRecipientAmountMoney() {
+    if (amount == null || recipientCurrency == null) {
+      return null;
+    }
+    BigDecimal convertedAmount = amount.multiply(exchangeRate);
+    return Money.of(convertedAmount, recipientCurrency);
   }
 }
