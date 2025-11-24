@@ -51,12 +51,6 @@ public class TransactionService {
 
     String transactionId = generateTransactionId();
 
-    Optional<Transaction> existing = transactionRepository.findByTransactionId(transactionId);
-    if (existing.isPresent()) {
-      logger.debug("Deposit already processed, returning existing transaction: {}", transactionId);
-      return existing.get();
-    }
-
     walletService.addBalance(wallet, currency, amount);
 
     Transaction transaction = Transaction.builder()
@@ -116,11 +110,6 @@ public class TransactionService {
       BigDecimal amount,
       BigDecimal exchangeRate) {
     validateAmount(amount);
-
-    if (recipientUser == null) {
-      logger.warn("Transfer failed - Recipient not found for Sender ID: {}", senderUser.getId());
-      throw new IllegalArgumentException("Recipient not found");
-    }
 
     logger.info("Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}",
         senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate);
