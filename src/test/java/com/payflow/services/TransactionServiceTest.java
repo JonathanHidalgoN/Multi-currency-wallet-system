@@ -89,9 +89,9 @@ class TransactionServiceTest {
   @Test
   void shouldDepositWithVariousAmounts() {
     BigDecimal[] amounts = {
-        new BigDecimal("0.01"),      // small
-        new BigDecimal("123.45"),    // decimal
-        new BigDecimal("999999.99")  // large
+        new BigDecimal("0.01"), // small
+        new BigDecimal("123.45"), // decimal
+        new BigDecimal("999999.99") // large
     };
 
     when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
@@ -145,9 +145,9 @@ class TransactionServiceTest {
   @Test
   void shouldWithdrawWithVariousAmounts() {
     BigDecimal[] amounts = {
-        new BigDecimal("0.01"),      // small
-        new BigDecimal("50.50"),     // decimal
-        new BigDecimal("500000.99")  // large
+        new BigDecimal("0.01"), // small
+        new BigDecimal("50.50"), // decimal
+        new BigDecimal("500000.99") // large
     };
 
     when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(true);
@@ -277,5 +277,102 @@ class TransactionServiceTest {
     assertTrue(result.hasNext());
 
     verify(transactionRepository).findByWallet(wallet, pageable);
+  }
+
+  @Test
+  void shouldTransferWithVariousAmountsAndCurrencies() {
+    Object[][] testCases = {
+        { new BigDecimal("0.01"), new BigDecimal("1.0"), "USD", "USD" }, // small same currency
+        { new BigDecimal("100.50"), new BigDecimal("0.92"), "USD", "EUR" }, // medium with conversion
+        { new BigDecimal("999999.99"), new BigDecimal("1.35"), "EUR", "GBP" } // large with conversion
+    };
+
+    when(walletService.getWalletByUser(user)).thenReturn(wallet);
+    when(walletService.getWalletByUser(recipientUser)).thenReturn(recipientWallet);
+    when(walletService.hasSufficientBalance(any(Wallet.class), any(Money.class))).thenReturn(true);
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
+      Transaction txn = invocation.getArgument(0);
+      return txn;
+    });
+
+    for (Object[] testCase : testCases) {
+      BigDecimal amount = (BigDecimal) testCase[0];
+      BigDecimal exchangeRate = (BigDecimal) testCase[1];
+      String senderCurrency = (String) testCase[2];
+      String recipientCurrency = (String) testCase[3];
+
+      Transaction result = transactionService.transfer(
+          user, recipientUser, senderCurrency, recipientCurrency, amount, exchangeRate);
+
+      assertNotNull(result);
+      assertEquals(amount, result.getAmount());
+      assertEquals(senderCurrency, result.getCurrency());
+      assertEquals(recipientCurrency, result.getRecipientCurrency());
+      assertEquals(exchangeRate, result.getExchangeRate());
+      assertEquals(Transaction.TransactionType.TRANSFER, result.getType());
+      assertEquals(Transaction.TransactionStatus.COMPLETED, result.getStatus());
+      assertEquals(wallet.getId(), result.getWallet().getId());
+      assertEquals(recipientUser.getId(), result.getRecipientUser().getId());
+
+      BigDecimal expectedFee = amount.multiply(new BigDecimal("0.015"));
+      assertEquals(expectedFee, result.getFee());
+
+      assertNotNull(result.getTransactionId());
+      assertTrue(result.getTransactionId().startsWith("TXN-"));
+    }
+
+    verify(walletService, times(3)).hasSufficientBalance(any(Wallet.class), any(Money.class));
+    verify(walletService, times(3)).subtractBalance(any(Wallet.class), any(Money.class));
+    verify(walletService, times(3)).addBalance(any(Wallet.class), any(Money.class));
+    verify(transactionRepository, times(3)).save(any(Transaction.class));
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTransferAmountIsNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> transactionService.transfer(user, recipientUser, "USD", "USD", null, BigDecimal.ONE));
+
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTransferAmountIsZero() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> transactionService.transfer(user, recipientUser, "USD", "USD", BigDecimal.ZERO, BigDecimal.ONE));
+
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTransferToSelf() {
+    BigDecimal amount = new BigDecimal("100.00");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> transactionService.transfer(user, user, "USD", "USD", amount, BigDecimal.ONE));
+
+    verify(walletService, never()).subtractBalance(any(), any());
+    verify(walletService, never()).addBalance(any(), any());
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenInsufficientBalanceForTransfer() {
+    BigDecimal amount = new BigDecimal("100.00");
+
+    when(walletService.getWalletByUser(user)).thenReturn(wallet);
+    when(walletService.getWalletByUser(recipientUser)).thenReturn(recipientWallet);
+    when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(false);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> transactionService.transfer(user, recipientUser, "USD", "EUR", amount, new BigDecimal("0.92")));
+
+    verify(walletService).hasSufficientBalance(eq(wallet), any(Money.class));
+    verify(walletService, never()).subtractBalance(any(), any());
+    verify(walletService, never()).addBalance(any(), any());
+    verify(transactionRepository, never()).save(any());
   }
 }
