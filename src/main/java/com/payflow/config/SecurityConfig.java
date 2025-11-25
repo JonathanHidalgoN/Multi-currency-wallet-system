@@ -83,9 +83,10 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
             // Swagger/OpenAPI endpoints
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+            // Actuator endpoints (for health checks, monitoring)
+            .requestMatchers("/actuator/health/**", "/actuator/info/**").permitAll()
             // All other endpoints require authentication
-            .anyRequest().authenticated()
-        )
+            .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
