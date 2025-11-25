@@ -29,8 +29,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response = new ErrorResponse(
         HttpStatus.BAD_REQUEST.value(),
         "Validation failed",
-        errors
-    );
+        errors);
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
@@ -40,10 +39,9 @@ public class GlobalExceptionHandler {
       IllegalArgumentException ex, WebRequest request) {
 
     ErrorResponse response = new ErrorResponse(
-        HttpStatus.UNAUTHORIZED.value(),
+        HttpStatus.BAD_REQUEST.value(),
         ex.getMessage(),
-        new HashMap<>()
-    );
+        new HashMap<>());
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
@@ -55,8 +53,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response = new ErrorResponse(
         HttpStatus.BAD_REQUEST.value(),
         ex.getMessage(),
-        new HashMap<>()
-    );
+        new HashMap<>());
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
@@ -68,8 +65,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response = new ErrorResponse(
         HttpStatus.INTERNAL_SERVER_ERROR.value(),
         "An unexpected error occurred",
-        new HashMap<>()
-    );
+        new HashMap<>());
 
     return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
   }
