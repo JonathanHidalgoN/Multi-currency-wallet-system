@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
         ex.getMessage(),
         new HashMap<>());
 
-    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(RuntimeException.class)
