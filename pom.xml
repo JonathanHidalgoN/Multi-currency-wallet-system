@@ -97,6 +97,12 @@
       <version>2.3.0</version>
     </dependency>
 
+    <!-- Spring Boot Actuator-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
     <!-- Testing: Spring Boot Test with JUnit 5 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
