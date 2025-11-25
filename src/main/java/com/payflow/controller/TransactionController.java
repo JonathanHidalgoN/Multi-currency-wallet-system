@@ -9,6 +9,7 @@ import com.payflow.DTOS.WithdrawRequest;
 import com.payflow.entity.Transaction;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
+import com.payflow.services.ExchangeRateService;
 import com.payflow.services.TransactionService;
 import com.payflow.services.UserService;
 import com.payflow.services.WalletService;
@@ -22,8 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -32,12 +31,15 @@ public class TransactionController {
   private final TransactionService transactionService;
   private final WalletService walletService;
   private final UserService userService;
+  private final ExchangeRateService exchangeRateService;
 
   public TransactionController(TransactionService transactionService,
-      WalletService walletService, UserService userService) {
+      WalletService walletService, UserService userService,
+      ExchangeRateService exchangeRateService) {
     this.transactionService = transactionService;
     this.walletService = walletService;
     this.userService = userService;
+    this.exchangeRateService = exchangeRateService;
   }
 
   @PostMapping("/deposit")
@@ -96,10 +98,9 @@ public class TransactionController {
     User sender = userService.getUserById(Long.parseLong(authentication.getName()));
     User recipient = userService.getUserById(request.recipientUserId());
 
-    BigDecimal exchangeRate = new BigDecimal("1.0");
-    if (!request.senderCurrency().equals(request.recipientCurrency())) {
-      exchangeRate = getExchangeRate(request.senderCurrency(), request.recipientCurrency());
-    }
+    BigDecimal exchangeRate = exchangeRateService.getExchangeRate(
+        request.senderCurrency(),
+        request.recipientCurrency());
 
     Transaction transaction = transactionService.transfer(
         sender,
@@ -146,16 +147,5 @@ public class TransactionController {
         t.getCreatedAt()));
 
     return ResponseEntity.ok(dtoPage);
-  }
-
-  private BigDecimal getExchangeRate(String fromCurrency, String toCurrency) {
-    Map<String, BigDecimal> rates = new HashMap<>();
-    rates.put("USD-EUR", new BigDecimal("0.92"));
-    rates.put("EUR-USD", new BigDecimal("1.09"));
-    rates.put("USD-MXN", new BigDecimal("17.50"));
-    rates.put("MXN-USD", new BigDecimal("0.057"));
-
-    String key = fromCurrency + "-" + toCurrency;
-    return rates.getOrDefault(key, BigDecimal.ONE);
   }
 }
