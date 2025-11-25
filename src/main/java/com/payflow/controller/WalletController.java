@@ -7,11 +7,10 @@ import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.services.UserService;
 import com.payflow.services.WalletService;
+import com.payflow.value.Money;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -37,8 +36,7 @@ public class WalletController {
         user.getId(),
         wallet.getBalances(),
         wallet.getCreatedAt(),
-        wallet.getUpdatedAt()
-    );
+        wallet.getUpdatedAt());
 
     return ResponseEntity.ok(response);
   }
@@ -51,9 +49,9 @@ public class WalletController {
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUser(user);
 
-    BigDecimal balance = walletService.getBalance(wallet, currency);
+    Money balance = walletService.getBalance(wallet, currency);
 
-    BalanceResponse response = new BalanceResponse(currency, balance);
+    BalanceResponse response = new BalanceResponse(currency, balance.getAmount());
 
     return ResponseEntity.ok(response);
   }
