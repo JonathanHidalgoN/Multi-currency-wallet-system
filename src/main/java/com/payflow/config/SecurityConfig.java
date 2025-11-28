@@ -73,19 +73,18 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
     http
-        .csrf().disable()
-        .cors().and()
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+        .csrf(csrf -> csrf.disable())
+
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authz -> authz
-            // Public endpoints
             .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-            // Swagger/OpenAPI endpoints
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-            // Actuator endpoints (for health checks, monitoring)
             .requestMatchers("/actuator/health/**", "/actuator/info/**").permitAll()
-            // All other endpoints require authentication
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
