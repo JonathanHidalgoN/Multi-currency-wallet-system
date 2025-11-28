@@ -82,4 +82,16 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(response, HttpStatus.TOO_MANY_REQUESTS);
   }
 
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthorizedException(
+      UnauthorizedException ex, WebRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.UNAUTHORIZED.value(),
+        ex.getMessage(),
+        new HashMap<>());
+
+    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+  }
+
 }
