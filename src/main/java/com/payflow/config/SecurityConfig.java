@@ -27,12 +27,14 @@ import java.util.Arrays;
 public class SecurityConfig {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final CorsProperties corsProperties;
 
   /**
    * Constructor
    */
-  public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+  public SecurityConfig(JwtTokenProvider jwtTokenProvider, CorsProperties corsProperties) {
     this.jwtTokenProvider = jwtTokenProvider;
+    this.corsProperties = corsProperties;
   }
 
   /**
@@ -52,16 +54,16 @@ public class SecurityConfig {
   }
 
   /**
-   * CORS Configuration
+   * CORS Configuration from properties
    */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
-    configuration.setAllowCredentials(true);
-    configuration.setMaxAge(3600L);
+    configuration.setAllowedOrigins(Arrays.asList(corsProperties.getAllowedOrigins()));
+    configuration.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods()));
+    configuration.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders()));
+    configuration.setAllowCredentials(corsProperties.getAllowCredentials());
+    configuration.setMaxAge(corsProperties.getMaxAge());
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
