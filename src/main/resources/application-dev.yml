@@ -27,8 +27,3 @@ app:
   jwt:
     secret: dev-secret-key-for-testing-only
     expiration: 604800000  # 7 days for easier testing
-
-  security:
-    cors:
-      allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:5173
-      allow-credentials: true
