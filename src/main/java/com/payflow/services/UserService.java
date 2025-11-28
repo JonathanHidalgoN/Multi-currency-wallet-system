@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.payflow.entity.User;
+import com.payflow.exception.UnauthorizedException;
 import com.payflow.repository.IUserRepository;
 
 import jakarta.transaction.Transactional;
@@ -90,4 +91,30 @@ public class UserService {
     logger.debug("Email existence check - Email: {}, Exists: {}", email, exists);
     return exists;
   }
+
+  /**
+   * Authenticate user with email and password
+   * @param email User's email
+   * @param password User's password
+   * @return Authenticated user
+   * @throws UnauthorizedException if credentials are invalid
+   */
+  public User authenticate(String email, String password) {
+    logger.info("Authentication attempt for email: {}", email);
+
+    User user = findByEmail(email)
+        .orElseThrow(() -> {
+          logger.warn("Authentication failed: user not found for email: {}", email);
+          return new UnauthorizedException("Invalid credentials");
+        });
+
+    if (!passwordEncoder.matches(password, user.getPassword())) {
+      logger.warn("Authentication failed: invalid password for email: {}", email);
+      throw new UnauthorizedException("Invalid credentials");
+    }
+
+    logger.info("Authentication successful for user ID: {}, email: {}", user.getId(), email);
+    return user;
+  }
+
 }

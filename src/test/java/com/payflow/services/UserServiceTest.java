@@ -75,8 +75,7 @@ class UserServiceTest {
 
     assertThrows(
         Exception.class,
-        () -> userService.registerUser(email, password, fullName)
-    );
+        () -> userService.registerUser(email, password, fullName));
 
     verify(userRepository).existsByEmail(email);
     verify(userRepository, never()).save(any());
@@ -135,8 +134,7 @@ class UserServiceTest {
 
     assertThrows(
         Exception.class,
-        () -> userService.getUserById(userId)
-    );
+        () -> userService.getUserById(userId));
   }
 
   @Test
@@ -157,6 +155,60 @@ class UserServiceTest {
     boolean result = userService.emailExists(email);
 
     assertFalse(result);
+  }
+
+  @Test
+  void shouldAuthenticateUserWithValidCredentials() {
+    String email = "test@example.com";
+    String password = "password123";
+
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+    when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
+
+    User result = userService.authenticate(email, password);
+
+    assertNotNull(result);
+    assertEquals(user.getId(), result.getId());
+    assertEquals(user.getEmail(), result.getEmail());
+    assertEquals(user.getFullName(), result.getFullName());
+
+    verify(userRepository).findByEmail(email);
+    verify(passwordEncoder).matches(password, user.getPassword());
+  }
+
+  @Test
+  void shouldThrowUnauthorizedExceptionWhenUserNotFound() {
+    String email = "nonexistent@example.com";
+    String password = "password123";
+
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(
+        Exception.class,
+        () -> userService.authenticate(email, password));
+
+    assertTrue(exception.getMessage().contains("Invalid credentials"));
+
+    verify(userRepository).findByEmail(email);
+    verify(passwordEncoder, never()).matches(any(), any());
+  }
+
+  @Test
+  void shouldThrowUnauthorizedExceptionWhenPasswordIncorrect() {
+    String email = "test@example.com";
+    String password = "wrongPassword";
+
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+    when(passwordEncoder.matches(password, user.getPassword())).thenReturn(false);
+
+    Exception exception = assertThrows(
+        Exception.class,
+        () -> userService.authenticate(email, password));
+
+    assertTrue(exception.getMessage().contains("Invalid credentials"));
+
+    verify(userRepository).findByEmail(email);
+    verify(passwordEncoder).matches(password, user.getPassword());
   }
 
 }
