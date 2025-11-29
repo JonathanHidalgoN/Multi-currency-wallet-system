@@ -155,6 +155,18 @@ After starting the application, access API documentation at:
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
+## Running Tests
+
+```bash
+mvn test
+```
+
+**Note:** Integration tests use Testcontainers (requires Docker running). If tests fail with `client version 1.32 is too old`, add to `~/.docker-java.properties`:
+```
+api.version=1.44
+```
+See: https://github.com/testcontainers/testcontainers-java/issues/11212#issuecomment-3516573631
+
 ## API Endpoints
 
 ### Authentication
