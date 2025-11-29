@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: test-secret-key-at-least-32-characters-long-for-testing-purposes
+    expiration: 3600000
+
+logging:
+  level:
+    com.payflow: INFO
+    org.springframework.security: WARN
+    org.testcontainers: INFO
