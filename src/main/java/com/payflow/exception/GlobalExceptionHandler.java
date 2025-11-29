@@ -4,6 +4,7 @@ import com.payflow.DTOS.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -30,6 +31,18 @@ public class GlobalExceptionHandler {
         HttpStatus.BAD_REQUEST.value(),
         "Validation failed",
         errors);
+
+    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<ErrorResponse> handleMissingParams(
+      MissingServletRequestParameterException ex, WebRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(),
+        "Required parameter '" + ex.getParameterName() + "' is missing",
+        new HashMap<>());
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
