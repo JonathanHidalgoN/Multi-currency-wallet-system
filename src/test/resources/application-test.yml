@@ -11,6 +11,10 @@ app:
     secret: test-secret-key-at-least-32-characters-long-for-testing-purposes
     expiration: 3600000
 
+  # Disable rate limiting in tests
+  rate-limit:
+    enabled: false
+
 logging:
   level:
     com.payflow: INFO

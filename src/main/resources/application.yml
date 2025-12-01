@@ -83,6 +83,16 @@ app:
       allow-credentials: true
       max-age: 3600
 
+  # Rate Limiting Configuration
+  rate-limit:
+    enabled: true
+    ip-capacity: 5
+    ip-refill-rate: 5
+    ip-refill-duration-minutes: 1
+    user-capacity: 100
+    user-refill-rate: 100
+    user-refill-duration-minutes: 1
+
   # Exchange Rate API Configuration
   exchange-rate:
     api-url: ${EXCHANGE_RATE_API_URL:https://api.exchangerate-api.com/v4/latest}
