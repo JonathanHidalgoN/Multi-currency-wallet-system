@@ -42,10 +42,19 @@ public class TransactionController {
     this.exchangeRateService = exchangeRateService;
   }
 
+  private void validateIdempotencyKey(String idempotencyKey) {
+    if (idempotencyKey == null || idempotencyKey.isBlank()) {
+      throw new IllegalArgumentException("Idempotency-Key header is required and cannot be blank");
+    }
+  }
+
   @PostMapping("/deposit")
   public ResponseEntity<TransactionResponse> deposit(
       Authentication authentication,
-      @Valid @RequestBody DepositRequest request) {
+      @Valid @RequestBody DepositRequest request,
+      @RequestHeader("Idempotency-Key") String idempotencyKey) {
+
+    validateIdempotencyKey(idempotencyKey);
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUser(user);
@@ -53,7 +62,8 @@ public class TransactionController {
     Transaction transaction = transactionService.deposit(
         wallet,
         request.currency(),
-        request.amount());
+        request.amount(),
+        idempotencyKey);
 
     TransactionResponse response = new TransactionResponse(
         transaction.getTransactionId(),
@@ -69,7 +79,10 @@ public class TransactionController {
   @PostMapping("/withdraw")
   public ResponseEntity<TransactionResponse> withdraw(
       Authentication authentication,
-      @Valid @RequestBody WithdrawRequest request) {
+      @Valid @RequestBody WithdrawRequest request,
+      @RequestHeader("Idempotency-Key") String idempotencyKey) {
+
+    validateIdempotencyKey(idempotencyKey);
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUser(user);
@@ -77,7 +90,8 @@ public class TransactionController {
     Transaction transaction = transactionService.withdraw(
         wallet,
         request.currency(),
-        request.amount());
+        request.amount(),
+        idempotencyKey);
 
     TransactionResponse response = new TransactionResponse(
         transaction.getTransactionId(),
@@ -93,7 +107,10 @@ public class TransactionController {
   @PostMapping("/transfer")
   public ResponseEntity<TransferResponse> transfer(
       Authentication authentication,
-      @Valid @RequestBody TransferRequest request) {
+      @Valid @RequestBody TransferRequest request,
+      @RequestHeader("Idempotency-Key") String idempotencyKey) {
+
+    validateIdempotencyKey(idempotencyKey);
 
     User sender = userService.getUserById(Long.parseLong(authentication.getName()));
     User recipient = userService.getUserById(request.recipientUserId());
@@ -108,7 +125,8 @@ public class TransactionController {
         request.senderCurrency(),
         request.recipientCurrency(),
         request.amount(),
-        exchangeRate);
+        exchangeRate,
+        idempotencyKey);
 
     TransferResponse response = new TransferResponse(
         transaction.getTransactionId(),
