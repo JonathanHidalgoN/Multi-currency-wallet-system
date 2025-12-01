@@ -1,12 +1,12 @@
 package com.payflow.validation;
 
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,35 +16,52 @@ import java.lang.annotation.Target;
 /**
  * Custom validation annotations for DTOs
  * Define all validation rules in one place for easy maintenance
+ * This is a utility class and should not be instantiated.
  */
-public class ValidationAnnotations {
+public final class ValidationAnnotations {
+
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private ValidationAnnotations() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     /**
      * Validates password: 8-20 characters, not blank
      */
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
+    @Constraint(validatedBy = PasswordValidator.class)
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface ValidPassword {}
+    public @interface ValidPassword {
+        String message() default "Password must be between 8 and 20 characters";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
 
     /**
      * Validates email: valid format, not blank
      */
-    @Email(message = "Email should be valid")
-    @NotBlank(message = "Email cannot be blank")
+    @Constraint(validatedBy = EmailValidator.class)
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface ValidEmail {}
+    public @interface ValidEmail {
+        String message() default "Email must be valid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
 
     /**
      * Validates full name: 2-100 characters, not blank
      */
-    @NotBlank(message = "Full name cannot be blank")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+    @Constraint(validatedBy = FullNameValidator.class)
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface ValidFullName {}
+    public @interface ValidFullName {
+        String message() default "Full name must be between 2 and 100 characters";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
 
     /**
      * Validates currency code: 3-letter ISO 4217 code (USD, EUR, GBP, etc.)
