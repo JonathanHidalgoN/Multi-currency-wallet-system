@@ -16,6 +16,8 @@ import com.payflow.entity.Wallet;
 public interface ITransactionRepository extends JpaRepository<Transaction, Long> {
   Optional<Transaction> findByTransactionId(String transactionId);
 
+  Optional<Transaction> findByIdempotencyKey(String idempotencyKey);
+
   Page<Transaction> findByWallet(Wallet wallet, Pageable pageable);
 
   Page<Transaction> findByWalletAndType(
