@@ -4,6 +4,7 @@ import com.payflow.DTOS.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,18 @@ public class GlobalExceptionHandler {
     ErrorResponse response = new ErrorResponse(
         HttpStatus.BAD_REQUEST.value(),
         "Required parameter '" + ex.getParameterName() + "' is missing",
+        new HashMap<>());
+
+    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingRequestHeader(
+      MissingRequestHeaderException ex, WebRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(),
+        "Required header '" + ex.getHeaderName() + "' is missing",
         new HashMap<>());
 
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
