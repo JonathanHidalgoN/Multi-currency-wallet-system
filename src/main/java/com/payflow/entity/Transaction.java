@@ -59,6 +59,9 @@ public class Transaction {
   @Column(name = "failure_reason", nullable = true)
   private String failureReason;
 
+  @Column(name = "idempotency_key", unique = true)
+  private String idempotencyKey;
+
   // Getters and Setters
   public Long getId() {
     return id;
@@ -172,6 +175,14 @@ public class Transaction {
     this.failureReason = failureReason;
   }
 
+  public String getIdempotencyKey() {
+    return idempotencyKey;
+  }
+
+  public void setIdempotencyKey(String idempotencyKey) {
+    this.idempotencyKey = idempotencyKey;
+  }
+
   public static TransactionBuilder builder() {
     return new TransactionBuilder();
   }
@@ -191,6 +202,7 @@ public class Transaction {
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
     private String failureReason;
+    private String idempotencyKey;
 
     public TransactionBuilder id(Long id) {
       this.id = id;
@@ -262,6 +274,11 @@ public class Transaction {
       return this;
     }
 
+    public TransactionBuilder idempotencyKey(String idempotencyKey) {
+      this.idempotencyKey = idempotencyKey;
+      return this;
+    }
+
     public Transaction build() {
       Transaction transaction = new Transaction();
       transaction.id = this.id;
@@ -278,6 +295,7 @@ public class Transaction {
       transaction.createdAt = this.createdAt;
       transaction.completedAt = this.completedAt;
       transaction.failureReason = this.failureReason;
+      transaction.idempotencyKey = this.idempotencyKey;
       return transaction;
     }
   }
