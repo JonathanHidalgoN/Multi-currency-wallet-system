@@ -45,8 +45,23 @@ public class TransactionService {
     }
   }
 
-  public Transaction deposit(Wallet wallet, String currency, BigDecimal amount) {
-    logger.info("Deposit initiated - Wallet ID: {}, Currency: {}, Amount: {}", wallet.getId(), currency, amount);
+  private Optional<Transaction> checkForDuplicateRequest(String idempotencyKey, String transactionType) {
+    Optional<Transaction> existingTransaction = transactionRepository.findByIdempotencyKey(idempotencyKey);
+    if (existingTransaction.isPresent()) {
+      logger.info("Duplicate {} request detected - Returning existing transaction with Idempotency Key: {}",
+          transactionType, idempotencyKey);
+    }
+    return existingTransaction;
+  }
+
+  public Transaction deposit(Wallet wallet, String currency, BigDecimal amount, String idempotencyKey) {
+    logger.info("Deposit initiated - Wallet ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
+        wallet.getId(), currency, amount, idempotencyKey);
+
+    Optional<Transaction> existingTransaction = checkForDuplicateRequest(idempotencyKey, "deposit");
+    if (existingTransaction.isPresent()) {
+      return existingTransaction.get();
+    }
 
     validateAmount(amount);
 
@@ -62,6 +77,7 @@ public class TransactionService {
         .status(Transaction.TransactionStatus.COMPLETED)
         .amount(amount)
         .currency(currency)
+        .idempotencyKey(idempotencyKey)
         .createdAt(LocalDateTime.now())
         .completedAt(LocalDateTime.now())
         .build();
@@ -72,8 +88,14 @@ public class TransactionService {
     return savedTransaction;
   }
 
-  public Transaction withdraw(Wallet wallet, String currency, BigDecimal amount) {
-    logger.info("Withdrawal initiated - Wallet ID: {}, Currency: {}, Amount: {}", wallet.getId(), currency, amount);
+  public Transaction withdraw(Wallet wallet, String currency, BigDecimal amount, String idempotencyKey) {
+    logger.info("Withdrawal initiated - Wallet ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
+        wallet.getId(), currency, amount, idempotencyKey);
+
+    Optional<Transaction> existingTransaction = checkForDuplicateRequest(idempotencyKey, "withdrawal");
+    if (existingTransaction.isPresent()) {
+      return existingTransaction.get();
+    }
 
     validateAmount(amount);
 
@@ -94,6 +116,7 @@ public class TransactionService {
         .status(Transaction.TransactionStatus.COMPLETED)
         .amount(amount)
         .currency(currency)
+        .idempotencyKey(idempotencyKey)
         .createdAt(LocalDateTime.now())
         .completedAt(LocalDateTime.now())
         .build();
@@ -111,11 +134,18 @@ public class TransactionService {
       String senderCurrency,
       String recipientCurrency,
       BigDecimal amount,
-      BigDecimal exchangeRate) {
-    validateAmount(amount);
+      BigDecimal exchangeRate,
+      String idempotencyKey) {
+    logger.info(
+        "Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}, Idempotency Key: {}",
+        senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate, idempotencyKey);
 
-    logger.info("Transfer initiated - Sender ID: {}, Recipient ID: {}, Amount: {} {}, Exchange Rate: {}",
-        senderUser.getId(), recipientUser.getId(), amount, senderCurrency, exchangeRate);
+    Optional<Transaction> existingTransaction = checkForDuplicateRequest(idempotencyKey, "transfer");
+    if (existingTransaction.isPresent()) {
+      return existingTransaction.get();
+    }
+
+    validateAmount(amount);
 
     if (senderUser.getId().equals(recipientUser.getId())) {
       logger.warn("Transfer rejected - Sender cannot transfer to themselves, User ID: {}", senderUser.getId());
@@ -160,6 +190,7 @@ public class TransactionService {
         .recipientCurrency(recipientCurrency)
         .exchangeRate(exchangeRate)
         .recipientUser(recipientUser)
+        .idempotencyKey(idempotencyKey)
         .createdAt(LocalDateTime.now())
         .completedAt(LocalDateTime.now())
         .build();
