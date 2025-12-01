@@ -35,7 +35,6 @@ public class RateLimitProperties {
   @NotNull(message = "User refill duration in minutes must be specified")
   private Integer userRefillDurationMinutes = 1;
 
-  // Getters and Setters
   public Boolean getEnabled() {
     return enabled;
   }

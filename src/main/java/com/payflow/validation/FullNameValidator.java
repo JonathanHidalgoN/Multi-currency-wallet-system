@@ -12,12 +12,10 @@ public class FullNameValidator implements ConstraintValidator<ValidFullName, Str
 
   @Override
   public boolean isValid(String fullName, ConstraintValidatorContext context) {
-    // Null or blank names are invalid
     if (fullName == null || fullName.isBlank()) {
       return false;
     }
 
-    // Check length: must be between 2 and 100 characters
     return fullName.length() >= 2 && fullName.length() <= 100;
   }
 }
