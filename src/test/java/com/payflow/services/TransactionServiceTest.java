@@ -94,13 +94,15 @@ class TransactionServiceTest {
         new BigDecimal("999999.99") // large
     };
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
     when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
       Transaction txn = invocation.getArgument(0);
       return txn;
     });
 
-    for (BigDecimal amount : amounts) {
-      Transaction result = transactionService.deposit(wallet, "USD", amount);
+    for (int i = 0; i < amounts.length; i++) {
+      BigDecimal amount = amounts[i];
+      Transaction result = transactionService.deposit(wallet, "USD", amount, "idempotency-key-" + i);
 
       assertNotNull(result);
       assertEquals(amount, result.getAmount());
@@ -121,9 +123,11 @@ class TransactionServiceTest {
     String currency = "USD";
     BigDecimal amount = null;
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.deposit(wallet, currency, amount));
+        () -> transactionService.deposit(wallet, currency, amount, "test-idempotency-key"));
 
     verify(transactionRepository, never()).save(any());
     verify(walletService, never()).addBalance(any(), any());
@@ -134,9 +138,11 @@ class TransactionServiceTest {
     String currency = "USD";
     BigDecimal amount = BigDecimal.ZERO;
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.deposit(wallet, currency, amount));
+        () -> transactionService.deposit(wallet, currency, amount, "test-idempotency-key"));
 
     verify(transactionRepository, never()).save(any());
     verify(walletService, never()).addBalance(any(), any());
@@ -150,14 +156,16 @@ class TransactionServiceTest {
         new BigDecimal("500000.99") // large
     };
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
     when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(true);
     when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
       Transaction txn = invocation.getArgument(0);
       return txn;
     });
 
-    for (BigDecimal amount : amounts) {
-      Transaction result = transactionService.withdraw(wallet, "USD", amount);
+    for (int i = 0; i < amounts.length; i++) {
+      BigDecimal amount = amounts[i];
+      Transaction result = transactionService.withdraw(wallet, "USD", amount, "withdraw-key-" + i);
 
       assertNotNull(result);
       assertEquals(amount, result.getAmount());
@@ -179,9 +187,11 @@ class TransactionServiceTest {
     String currency = "USD";
     BigDecimal amount = null;
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.withdraw(wallet, currency, amount));
+        () -> transactionService.withdraw(wallet, currency, amount, "test-key"));
 
     verify(transactionRepository, never()).save(any());
     verify(walletService, never()).subtractBalance(any(), any());
@@ -192,11 +202,12 @@ class TransactionServiceTest {
     String currency = "USD";
     BigDecimal amount = new BigDecimal("100.00");
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
     when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(false);
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.withdraw(wallet, currency, amount));
+        () -> transactionService.withdraw(wallet, currency, amount, "test-key"));
 
     verify(walletService).hasSufficientBalance(eq(wallet), any(Money.class));
     verify(walletService, never()).subtractBalance(any(), any());
@@ -287,6 +298,7 @@ class TransactionServiceTest {
         { new BigDecimal("999999.99"), new BigDecimal("1.35"), "EUR", "GBP" } // large with conversion
     };
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
     when(walletService.getWalletByUser(user)).thenReturn(wallet);
     when(walletService.getWalletByUser(recipientUser)).thenReturn(recipientWallet);
     when(walletService.hasSufficientBalance(any(Wallet.class), any(Money.class))).thenReturn(true);
@@ -295,14 +307,15 @@ class TransactionServiceTest {
       return txn;
     });
 
-    for (Object[] testCase : testCases) {
+    for (int i = 0; i < testCases.length; i++) {
+      Object[] testCase = testCases[i];
       BigDecimal amount = (BigDecimal) testCase[0];
       BigDecimal exchangeRate = (BigDecimal) testCase[1];
       String senderCurrency = (String) testCase[2];
       String recipientCurrency = (String) testCase[3];
 
       Transaction result = transactionService.transfer(
-          user, recipientUser, senderCurrency, recipientCurrency, amount, exchangeRate);
+          user, recipientUser, senderCurrency, recipientCurrency, amount, exchangeRate, "transfer-key-" + i);
 
       assertNotNull(result);
       assertEquals(amount, result.getAmount());
@@ -329,18 +342,23 @@ class TransactionServiceTest {
 
   @Test
   void shouldThrowExceptionWhenTransferAmountIsNull() {
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.transfer(user, recipientUser, "USD", "USD", null, BigDecimal.ONE));
+        () -> transactionService.transfer(user, recipientUser, "USD", "USD", null, BigDecimal.ONE, "test-key"));
 
     verify(transactionRepository, never()).save(any());
   }
 
   @Test
   void shouldThrowExceptionWhenTransferAmountIsZero() {
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.transfer(user, recipientUser, "USD", "USD", BigDecimal.ZERO, BigDecimal.ONE));
+        () -> transactionService.transfer(user, recipientUser, "USD", "USD", BigDecimal.ZERO, BigDecimal.ONE,
+            "test-key"));
 
     verify(transactionRepository, never()).save(any());
   }
@@ -349,9 +367,11 @@ class TransactionServiceTest {
   void shouldThrowExceptionWhenTransferToSelf() {
     BigDecimal amount = new BigDecimal("100.00");
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.transfer(user, user, "USD", "USD", amount, BigDecimal.ONE));
+        () -> transactionService.transfer(user, user, "USD", "USD", amount, BigDecimal.ONE, "test-key"));
 
     verify(walletService, never()).subtractBalance(any(), any());
     verify(walletService, never()).addBalance(any(), any());
@@ -362,17 +382,148 @@ class TransactionServiceTest {
   void shouldThrowExceptionWhenInsufficientBalanceForTransfer() {
     BigDecimal amount = new BigDecimal("100.00");
 
+    when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
     when(walletService.getWalletByUser(user)).thenReturn(wallet);
     when(walletService.getWalletByUser(recipientUser)).thenReturn(recipientWallet);
     when(walletService.hasSufficientBalance(eq(wallet), any(Money.class))).thenReturn(false);
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.transfer(user, recipientUser, "USD", "EUR", amount, new BigDecimal("0.92")));
+        () -> transactionService.transfer(user, recipientUser, "USD", "EUR", amount, new BigDecimal("0.92"),
+            "test-key"));
 
     verify(walletService).hasSufficientBalance(eq(wallet), any(Money.class));
     verify(walletService, never()).subtractBalance(any(), any());
     verify(walletService, never()).addBalance(any(), any());
     verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldReturnExistingTransactionWhenDepositWithDuplicateIdempotencyKey() {
+    String idempotencyKey = "duplicate-deposit-key";
+    Transaction existingTransaction = Transaction.builder()
+        .id(100L)
+        .transactionId("TXN-EXISTING-1234")
+        .wallet(wallet)
+        .type(Transaction.TransactionType.DEPOSIT)
+        .status(Transaction.TransactionStatus.COMPLETED)
+        .amount(new BigDecimal("100.00"))
+        .currency("USD")
+        .idempotencyKey(idempotencyKey)
+        .createdAt(LocalDateTime.now())
+        .completedAt(LocalDateTime.now())
+        .build();
+
+    when(transactionRepository.findByIdempotencyKey(idempotencyKey))
+        .thenReturn(Optional.of(existingTransaction));
+
+    Transaction result = transactionService.deposit(wallet, "USD", new BigDecimal("100.00"), idempotencyKey);
+
+    assertNotNull(result);
+    assertEquals(existingTransaction.getTransactionId(), result.getTransactionId());
+    assertEquals(existingTransaction.getId(), result.getId());
+    assertEquals("TXN-EXISTING-1234", result.getTransactionId());
+
+    verify(transactionRepository, never()).save(any());
+    verify(walletService, never()).addBalance(any(), any());
+    verify(transactionRepository).findByIdempotencyKey(idempotencyKey);
+  }
+
+  @Test
+  void shouldReturnExistingTransactionWhenWithdrawWithDuplicateIdempotencyKey() {
+    String idempotencyKey = "duplicate-withdraw-key";
+    Transaction existingTransaction = Transaction.builder()
+        .id(200L)
+        .transactionId("TXN-EXISTING-5678")
+        .wallet(wallet)
+        .type(Transaction.TransactionType.WITHDRAWAL)
+        .status(Transaction.TransactionStatus.COMPLETED)
+        .amount(new BigDecimal("50.00"))
+        .currency("USD")
+        .idempotencyKey(idempotencyKey)
+        .createdAt(LocalDateTime.now())
+        .completedAt(LocalDateTime.now())
+        .build();
+
+    when(transactionRepository.findByIdempotencyKey(idempotencyKey))
+        .thenReturn(Optional.of(existingTransaction));
+
+    Transaction result = transactionService.withdraw(wallet, "USD", new BigDecimal("50.00"), idempotencyKey);
+
+    assertNotNull(result);
+    assertEquals(existingTransaction.getTransactionId(), result.getTransactionId());
+    assertEquals(existingTransaction.getId(), result.getId());
+    assertEquals("TXN-EXISTING-5678", result.getTransactionId());
+
+    verify(transactionRepository, never()).save(any());
+    verify(walletService, never()).hasSufficientBalance(any(), any());
+    verify(walletService, never()).subtractBalance(any(), any());
+    verify(transactionRepository).findByIdempotencyKey(idempotencyKey);
+  }
+
+  @Test
+  void shouldReturnExistingTransactionWhenTransferWithDuplicateIdempotencyKey() {
+    String idempotencyKey = "duplicate-transfer-key";
+    Transaction existingTransaction = Transaction.builder()
+        .id(300L)
+        .transactionId("TXN-EXISTING-9999")
+        .wallet(wallet)
+        .type(Transaction.TransactionType.TRANSFER)
+        .status(Transaction.TransactionStatus.COMPLETED)
+        .amount(new BigDecimal("100.00"))
+        .currency("USD")
+        .fee(new BigDecimal("1.50"))
+        .recipientCurrency("EUR")
+        .exchangeRate(new BigDecimal("0.92"))
+        .recipientUser(recipientUser)
+        .idempotencyKey(idempotencyKey)
+        .createdAt(LocalDateTime.now())
+        .completedAt(LocalDateTime.now())
+        .build();
+
+    when(transactionRepository.findByIdempotencyKey(idempotencyKey))
+        .thenReturn(Optional.of(existingTransaction));
+
+    Transaction result = transactionService.transfer(
+        user,
+        recipientUser,
+        "USD",
+        "EUR",
+        new BigDecimal("100.00"),
+        new BigDecimal("0.92"),
+        idempotencyKey);
+
+    assertNotNull(result);
+    assertEquals(existingTransaction.getTransactionId(), result.getTransactionId());
+    assertEquals(existingTransaction.getId(), result.getId());
+    assertEquals("TXN-EXISTING-9999", result.getTransactionId());
+
+    verify(transactionRepository, never()).save(any());
+    verify(walletService, never()).getWalletByUser(any());
+    verify(walletService, never()).hasSufficientBalance(any(), any());
+    verify(walletService, never()).subtractBalance(any(), any());
+    verify(walletService, never()).addBalance(any(), any());
+    verify(transactionRepository).findByIdempotencyKey(idempotencyKey);
+  }
+
+  @Test
+  void shouldCreateNewTransactionWhenIdempotencyKeyIsUnique() {
+    String uniqueKey = "unique-deposit-key";
+
+    when(transactionRepository.findByIdempotencyKey(uniqueKey)).thenReturn(Optional.empty());
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
+      Transaction txn = invocation.getArgument(0);
+      txn.setId(999L);
+      return txn;
+    });
+
+    Transaction result = transactionService.deposit(wallet, "USD", new BigDecimal("100.00"), uniqueKey);
+
+    assertNotNull(result);
+    assertNotNull(result.getTransactionId());
+
+    verify(transactionRepository).findByIdempotencyKey(uniqueKey);
+    verify(transactionRepository).save(any(Transaction.class));
+    verify(walletService).addBalance(eq(wallet), any(Money.class));
   }
 }
