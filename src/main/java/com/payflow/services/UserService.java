@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.payflow.entity.User;
+import com.payflow.exception.DuplicateEmailException;
 import com.payflow.exception.UnauthorizedException;
 import com.payflow.repository.IUserRepository;
 
@@ -35,7 +36,7 @@ public class UserService {
 
     if (userRepository.existsByEmail(email)) {
       logger.warn("Registration failed: email already exists: {}", email);
-      throw new IllegalArgumentException("Email already exists");
+      throw new DuplicateEmailException(email);
     }
 
     User user = User.builder()
@@ -92,13 +93,6 @@ public class UserService {
     return exists;
   }
 
-  /**
-   * Authenticate user with email and password
-   * @param email User's email
-   * @param password User's password
-   * @return Authenticated user
-   * @throws UnauthorizedException if credentials are invalid
-   */
   public User authenticate(String email, String password) {
     logger.info("Authentication attempt for email: {}", email);
 

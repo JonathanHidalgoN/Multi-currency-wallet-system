@@ -107,4 +107,16 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
 
+  @ExceptionHandler(DuplicateEmailException.class)
+  public ResponseEntity<ErrorResponse> handleDuplicateEmailException(
+      DuplicateEmailException ex, WebRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.CONFLICT.value(),
+        ex.getMessage(),
+        new HashMap<>());
+
+    return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+  }
+
 }
