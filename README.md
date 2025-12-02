@@ -16,11 +16,6 @@ Controllers → Services → Repositories → Database
 - **Java Version**: Java 21
 - **Database**: PostgreSQL 16
 - **Authentication**: JWT (JSON Web Tokens) with Spring Security
-- **Password Hashing**: BCrypt
-- **ORM**: Hibernate with Spring Data JPA
-- **Database Migrations**: Flyway
-- **API Documentation**: SpringDoc OpenAPI (Swagger)
-- **Testing**: JUnit 5, Mockito, Spring Security Test
 
 ## Project Structure
 
@@ -72,34 +67,10 @@ wallet-api/
    - Token must be sent in `Authorization` header: `Bearer <token>`
    - JwtAuthenticationFilter validates token on each request
 
-### Key Security Classes
-
-#### JwtTokenProvider (com.payflow.security)
-- Generates JWT tokens with HS256 algorithm
-- Validates JWT tokens
-- Extracts user ID from token claims
-- Uses minimum 32-character secret key (HS256 requirement)
-
-#### JwtAuthenticationFilter (com.payflow.security)
-- OncePerRequestFilter that validates JWT on each request
-- Extracts Bearer token from Authorization header
-- Sets Authentication object in SecurityContext if token is valid
-- Silently continues if token is invalid (Spring Security will reject later)
-
-#### SecurityConfig (com.payflow.config)
-- Defines PasswordEncoder bean (BCryptPasswordEncoder)
-- Configures CORS for frontend applications (localhost:3000, localhost:5173)
-- Sets up JWT authentication filter in security chain
-- Allows public access to `/api/auth/register` and `/api/auth/login`
-- Requires authentication for all other endpoints
-
 ### Exception Handling
 
 GlobalExceptionHandler provides centralized exception handling:
 - **MethodArgumentNotValidException**: Validation errors (400 Bad Request)
-- **IllegalArgumentException**: Authentication failures, user not found (401 Unauthorized)
-- **RuntimeException**: Business logic errors (400 Bad Request)
-- **Exception**: All other errors (500 Internal Server Error)
 
 ## Setup & Running
 
@@ -114,7 +85,7 @@ GlobalExceptionHandler provides centralized exception handling:
 
 1. **Clone or navigate to project directory**
    ```bash
-   cd /home/jonathan-linux/jonas/projects/walletTransactionSystemJava/wallet-api
+   cd /{your-path}/wallet-api
    ```
 
 2. **Create .env file** (already provided)
@@ -127,24 +98,10 @@ GlobalExceptionHandler provides centralized exception handling:
    JWT_EXPIRATION=86400000
    ```
 
-3. **Start PostgreSQL with Docker**
+3. **Start the application with Docker**
    ```bash
-   docker-compose up -d
+   docker-compose up --build -d
    ```
-
-4. **Build the application**
-   ```bash
-   mvn clean package
-   ```
-
-5. **Run the application**
-   ```bash
-   java -jar target/wallet-api-1.0-SNAPSHOT.jar
-   ```
-
-   Or using Maven:
-   ```bash
-   mvn spring-boot:run
    ```
 
    The API will be available at `http://localhost:8080`
@@ -166,111 +123,6 @@ mvn test
 api.version=1.44
 ```
 See: https://github.com/testcontainers/testcontainers-java/issues/11212#issuecomment-3516573631
-
-## API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login and get JWT token |
-
-### Wallet
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/wallets/me` | Get wallet details |
-| GET | `/api/wallets/me/balance?currency=USD` | Get balance for currency |
-| GET | `/api/wallets/me/balances` | Get all balances |
-
-### Transactions
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/transactions/deposit` | Deposit money |
-| POST | `/api/transactions/withdraw` | Withdraw money |
-| POST | `/api/transactions/transfer` | Transfer to another user |
-| GET | `/api/transactions/history` | Get transaction history (paginated) |
-
-## Example Requests
-
-### 1. Register User
-
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "securePassword123",
-    "fullName": "John Doe"
-  }'
-```
-
-Response:
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "fullName": "John Doe",
-  "message": "User registered successfully"
-}
-```
-
-### 2. Login User
-
-```bash
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "securePassword123"
-  }'
-```
-
-Response:
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "fullName": "John Doe",
-  "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzAwNjAwMDAwLCJleHAiOjE3MDA2ODYwMDB9.signature...",
-  "message": "Login successful"
-}
-```
-
-### 3. Get Wallet Info (Requires JWT)
-
-```bash
-curl -X GET http://localhost:8080/api/wallets/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### 4. Deposit Money
-
-```bash
-curl -X POST http://localhost:8080/api/transactions/deposit \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": 1000,
-    "currency": "USD"
-  }'
-```
-
-### 5. Transfer Money
-
-```bash
-curl -X POST http://localhost:8080/api/transactions/transfer \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipientUserId": 2,
-    "senderCurrency": "USD",
-    "recipientCurrency": "EUR",
-    "amount": 100
-  }'
-```
 
 ## Next Steps
 
