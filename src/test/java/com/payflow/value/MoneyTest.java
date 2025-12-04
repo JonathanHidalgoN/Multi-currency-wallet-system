@@ -372,7 +372,7 @@ class MoneyTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"0.01", "100.00", "999999.99", "0.00"})
+  @ValueSource(strings = { "0.01", "100.00", "999999.99", "0.00" })
   void testVariousValidAmounts(String amount) {
     Money money = Money.of(amount, "USD");
 

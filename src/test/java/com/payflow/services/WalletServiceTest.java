@@ -60,48 +60,48 @@ class WalletServiceTest {
 
   @Test
   void shouldReturnWalletWhenFoundByUser() {
-    when(walletRepository.findByUser(user)).thenReturn(Optional.of(wallet));
+    when(walletRepository.findByUserWithoutLock(user)).thenReturn(Optional.of(wallet));
 
-    Wallet result = walletService.getWalletByUser(user);
+    Wallet result = walletService.getWalletByUserReadOnly(user);
 
     assertNotNull(result);
     assertEquals(wallet.getId(), result.getId());
-    verify(walletRepository).findByUser(user);
+    verify(walletRepository).findByUserWithoutLock(user);
   }
 
   @Test
   void shouldThrowExceptionWhenWalletNotFoundByUser() {
-    when(walletRepository.findByUser(user)).thenReturn(Optional.empty());
+    when(walletRepository.findByUserWithoutLock(user)).thenReturn(Optional.empty());
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> walletService.getWalletByUser(user));
+        () -> walletService.getWalletByUserReadOnly(user));
 
-    verify(walletRepository).findByUser(user);
+    verify(walletRepository).findByUserWithoutLock(user);
   }
 
   @Test
   void shouldReturnWalletWhenFoundByUserId() {
     Long userId = 1L;
-    when(walletRepository.findByUserId(userId)).thenReturn(Optional.of(wallet));
+    when(walletRepository.findByUserIdWithoutLock(userId)).thenReturn(Optional.of(wallet));
 
-    Wallet result = walletService.getWalletByUserId(userId);
+    Wallet result = walletService.getWalletByUserIdReadOnly(userId);
 
     assertNotNull(result);
     assertEquals(wallet.getId(), result.getId());
-    verify(walletRepository).findByUserId(userId);
+    verify(walletRepository).findByUserIdWithoutLock(userId);
   }
 
   @Test
   void shouldThrowExceptionWhenWalletNotFoundByUserId() {
     Long userId = 999L;
-    when(walletRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(walletRepository.findByUserIdWithoutLock(userId)).thenReturn(Optional.empty());
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> walletService.getWalletByUserId(userId));
+        () -> walletService.getWalletByUserIdReadOnly(userId));
 
-    verify(walletRepository).findByUserId(userId);
+    verify(walletRepository).findByUserIdWithoutLock(userId);
   }
 
   @Test
