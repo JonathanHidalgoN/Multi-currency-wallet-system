@@ -29,7 +29,7 @@ public class WalletController {
       Authentication authentication) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
+    Wallet wallet = walletService.getWalletByUserReadOnly(user);
 
     FullWalletResponse response = new FullWalletResponse(
         wallet.getId(),
@@ -47,7 +47,7 @@ public class WalletController {
       @RequestParam String currency) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
+    Wallet wallet = walletService.getWalletByUserReadOnly(user);
 
     Money balance = walletService.getBalance(wallet, currency);
 
@@ -61,7 +61,7 @@ public class WalletController {
       Authentication authentication) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
+    Wallet wallet = walletService.getWalletByUserReadOnly(user);
 
     BalancesResponse response = new BalancesResponse(wallet.getId(), wallet.getBalances());
 

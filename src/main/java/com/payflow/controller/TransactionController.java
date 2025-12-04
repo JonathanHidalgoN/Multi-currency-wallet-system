@@ -57,10 +57,9 @@ public class TransactionController {
     validateIdempotencyKey(idempotencyKey);
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
 
     Transaction transaction = transactionService.deposit(
-        wallet,
+        user,
         request.currency(),
         request.amount(),
         idempotencyKey);
@@ -85,10 +84,9 @@ public class TransactionController {
     validateIdempotencyKey(idempotencyKey);
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
 
     Transaction transaction = transactionService.withdraw(
-        wallet,
+        user,
         request.currency(),
         request.amount(),
         idempotencyKey);
@@ -151,7 +149,7 @@ public class TransactionController {
       @RequestParam(defaultValue = "10") int size) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
-    Wallet wallet = walletService.getWalletByUser(user);
+    Wallet wallet = walletService.getWalletByUserReadOnly(user);
 
     Pageable pageable = PageRequest.of(page, size);
     Page<Transaction> transactions = transactionService.getTransactionHistory(wallet, pageable);
