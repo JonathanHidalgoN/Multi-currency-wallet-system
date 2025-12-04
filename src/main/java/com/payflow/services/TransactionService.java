@@ -4,6 +4,7 @@ import com.payflow.entity.Transaction;
 import com.payflow.entity.Wallet;
 import com.payflow.entity.User;
 import com.payflow.repository.ITransactionRepository;
+import com.payflow.repository.IWalletRepository;
 import com.payflow.value.Money;
 
 import jakarta.transaction.Transactional;
@@ -26,13 +27,16 @@ public class TransactionService {
 
   private final ITransactionRepository transactionRepository;
   private final WalletService walletService;
+  private final IWalletRepository walletRepository;
 
   public TransactionService(
       ITransactionRepository transactionRepository,
       WalletService walletService,
+      IWalletRepository walletRepository,
       UserService userService) {
     this.transactionRepository = transactionRepository;
     this.walletService = walletService;
+    this.walletRepository = walletRepository;
   }
 
   private String generateTransactionId() {
@@ -54,9 +58,9 @@ public class TransactionService {
     return existingTransaction;
   }
 
-  public Transaction deposit(Wallet wallet, String currency, BigDecimal amount, String idempotencyKey) {
-    logger.info("Deposit initiated - Wallet ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
-        wallet.getId(), currency, amount, idempotencyKey);
+  public Transaction deposit(User user, String currency, BigDecimal amount, String idempotencyKey) {
+    logger.info("Deposit initiated - User ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
+        user.getId(), currency, amount, idempotencyKey);
 
     Optional<Transaction> existingTransaction = checkForDuplicateRequest(idempotencyKey, "deposit");
     if (existingTransaction.isPresent()) {
@@ -64,6 +68,10 @@ public class TransactionService {
     }
 
     validateAmount(amount);
+
+    Wallet wallet = walletRepository.findByUserIdWithLock(user.getId())
+        .orElseThrow(() -> new IllegalArgumentException("Wallet not found for user"));
+    logger.debug("Wallet locked for deposit - Wallet ID: {}", wallet.getId());
 
     String transactionId = generateTransactionId();
     Money money = Money.of(amount, currency);
@@ -88,9 +96,9 @@ public class TransactionService {
     return savedTransaction;
   }
 
-  public Transaction withdraw(Wallet wallet, String currency, BigDecimal amount, String idempotencyKey) {
-    logger.info("Withdrawal initiated - Wallet ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
-        wallet.getId(), currency, amount, idempotencyKey);
+  public Transaction withdraw(User user, String currency, BigDecimal amount, String idempotencyKey) {
+    logger.info("Withdrawal initiated - User ID: {}, Currency: {}, Amount: {}, Idempotency Key: {}",
+        user.getId(), currency, amount, idempotencyKey);
 
     Optional<Transaction> existingTransaction = checkForDuplicateRequest(idempotencyKey, "withdrawal");
     if (existingTransaction.isPresent()) {
@@ -98,6 +106,10 @@ public class TransactionService {
     }
 
     validateAmount(amount);
+
+    Wallet wallet = walletRepository.findByUserIdWithLock(user.getId())
+        .orElseThrow(() -> new IllegalArgumentException("Wallet not found for user"));
+    logger.debug("Wallet locked for withdrawal - Wallet ID: {}", wallet.getId());
 
     String transactionId = generateTransactionId();
     Money money = Money.of(amount, currency);
@@ -152,8 +164,20 @@ public class TransactionService {
       throw new IllegalArgumentException("Cannot transfer to yourself");
     }
 
-    Wallet senderWallet = walletService.getWalletByUser(senderUser);
-    Wallet recipientWallet = walletService.getWalletByUser(recipientUser);
+    Wallet senderWallet, recipientWallet;
+    if (senderUser.getId() < recipientUser.getId()) {
+      senderWallet = walletRepository.findByUserIdWithLock(senderUser.getId())
+          .orElseThrow(() -> new IllegalArgumentException("Sender wallet not found"));
+      recipientWallet = walletRepository.findByUserIdWithLock(recipientUser.getId())
+          .orElseThrow(() -> new IllegalArgumentException("Recipient wallet not found"));
+    } else {
+      recipientWallet = walletRepository.findByUserIdWithLock(recipientUser.getId())
+          .orElseThrow(() -> new IllegalArgumentException("Recipient wallet not found"));
+      senderWallet = walletRepository.findByUserIdWithLock(senderUser.getId())
+          .orElseThrow(() -> new IllegalArgumentException("Sender wallet not found"));
+    }
+    logger.debug("Both wallets locked for transfer - Sender Wallet ID: {}, Recipient Wallet ID: {}",
+        senderWallet.getId(), recipientWallet.getId());
 
     Money moneyAmount = Money.of(amount, senderCurrency);
     BigDecimal fee = amount.multiply(new BigDecimal("0.015"));
