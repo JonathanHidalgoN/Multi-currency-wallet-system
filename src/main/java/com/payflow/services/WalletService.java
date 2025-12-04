@@ -33,18 +33,18 @@ public class WalletService {
     return savedWallet;
   }
 
-  public Wallet getWalletByUser(User user) {
+  public Wallet getWalletByUserReadOnly(User user) {
     logger.debug("Fetching wallet for user ID: {}", user.getId());
-    return walletRepository.findByUser(user)
+    return walletRepository.findByUserWithoutLock(user)
         .orElseThrow(() -> {
           logger.warn("Wallet not found for user ID: {}", user.getId());
           return new IllegalArgumentException("Wallet not found for user");
         });
   }
 
-  public Wallet getWalletByUserId(Long userId) {
+  public Wallet getWalletByUserIdReadOnly(Long userId) {
     logger.debug("Fetching wallet for user ID: {}", userId);
-    return walletRepository.findByUserId(userId)
+    return walletRepository.findByUserIdWithoutLock(userId)
         .orElseThrow(() -> {
           logger.warn("Wallet not found for user ID: {}", userId);
           return new IllegalArgumentException("Wallet not found");
@@ -73,7 +73,8 @@ public class WalletService {
     }
     logger.debug("Checking sufficient balance - Wallet ID: {}, Required: {}", wallet.getId(), amount);
     boolean sufficient = wallet.hasSufficientBalance(amount);
-    logger.debug("Balance check result - Wallet ID: {}, Required: {}, Sufficient: {}", wallet.getId(), amount, sufficient);
+    logger.debug("Balance check result - Wallet ID: {}, Required: {}, Sufficient: {}", wallet.getId(), amount,
+        sufficient);
     return sufficient;
   }
 
