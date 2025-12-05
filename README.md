@@ -29,10 +29,14 @@ wallet-api/
 │   ├── DTOS/                 # Request/Response objects
 │   ├── value/                # Value objects (Money)
 │   ├── security/             # JWT authentication
-│   ├── config/
+│   ├── config/               # Configuration classes
 │   ├── exception/            # Global error handling
-│   ├── validation/
-│   └── util/
+│   ├── filter/               # Request filters
+│   ├── iterceptor/           # Request interceptors
+│   ├── validation/           # Custom validators
+│   ├── util/                 # Utility classes
+│   ├── RateLimitService.java # Rate limiting service
+│   └── App.java              # Main application class
 ├── src/main/resources/
 │   ├── application.yml
 │   ├── application-dev.yml
@@ -71,6 +75,11 @@ wallet-api/
 
 GlobalExceptionHandler provides centralized exception handling:
 - **MethodArgumentNotValidException**: Validation errors (400 Bad Request)
+
+## Key Features
+
+- **Database Locking** (`src/main/java/com/payflow/services/WalletService.java`): Implements pessimistic locking for thread-safe wallet operations during concurrent transactions
+- **Rate Limiting** (`src/main/java/com/payflow/RateLimitService.java`): Token bucket-based rate limiting using Bucket4j for both IP and user-level request throttling
 
 ## Setup & Running
 
@@ -126,10 +135,8 @@ See: https://github.com/testcontainers/testcontainers-java/issues/11212#issuecom
 
 ## Next Steps
 
-1. Implement comprehensive unit and integration tests
-2. Add rate limiting for sensitive endpoints
-3. Implement refresh tokens for better security
-4. Add audit logging for transactions
-5. Implement email verification for registration
-6. Add two-factor authentication
-7. Create admin dashboard for transaction monitoring
+1. Implement refresh tokens for better security
+2. Add audit logging for transactions
+3. Implement email verification for registration
+4. Add two-factor authentication
+5. Create admin dashboard for transaction monitoring
