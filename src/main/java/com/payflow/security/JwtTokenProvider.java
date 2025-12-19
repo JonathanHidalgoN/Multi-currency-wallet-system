@@ -13,9 +13,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-/**
- * JWT Token Provider - handles JWT token generation and validation
- */
 @Component
 public class JwtTokenProvider {
 

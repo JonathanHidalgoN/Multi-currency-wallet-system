@@ -18,10 +18,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-/**
- * Spring Security Configuration
- * Defines authentication, authorization, and CORS settings
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -29,33 +25,21 @@ public class SecurityConfig {
   private final JwtTokenProvider jwtTokenProvider;
   private final CorsProperties corsProperties;
 
-  /**
-   * Constructor
-   */
   public SecurityConfig(JwtTokenProvider jwtTokenProvider, CorsProperties corsProperties) {
     this.jwtTokenProvider = jwtTokenProvider;
     this.corsProperties = corsProperties;
   }
 
-  /**
-   * BCryptPasswordEncoder bean for password hashing
-   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
-  /**
-   * JWT Authentication Filter bean
-   */
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter() {
     return new JwtAuthenticationFilter(jwtTokenProvider);
   }
 
-  /**
-   * CORS Configuration from properties
-   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -70,9 +54,6 @@ public class SecurityConfig {
     return source;
   }
 
-  /**
-   * Security Filter Chain - main security configuration
-   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 

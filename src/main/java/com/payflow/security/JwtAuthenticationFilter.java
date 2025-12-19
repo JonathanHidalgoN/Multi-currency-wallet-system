@@ -11,16 +11,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * JWT Authentication Filter - validates JWT tokens on each request
- */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
 
-  /**
-   * Constructor
-   */
   public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
     this.jwtTokenProvider = jwtTokenProvider;
   }
@@ -35,22 +29,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
         Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
 
-        // Create authentication object
-        UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(userId, null, new ArrayList<>());
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null,
+            new ArrayList<>());
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
     } catch (Exception ex) {
-      // Log error but continue - will be handled by Spring Security
+      // will be handled by Spring Security
     }
 
     filterChain.doFilter(request, response);
   }
 
-  /**
-   * Extract JWT token from Authorization header
-   * Expects: "Bearer <token>"
-   */
   private String getJwtFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
     if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
