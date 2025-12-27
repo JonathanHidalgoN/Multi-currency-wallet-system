@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -16,26 +17,31 @@ public class User {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
   private Long id;
 
   @NotBlank
   @Email(message = "Email should be valid")
-  @Column(nullable = false, unique = true)
+  @Column(name = "email", nullable = false, unique = true)
   private String email;
 
   @NotBlank(message = "Password cannot be blank")
-  @Column(nullable = false)
+  @Column(name = "password", nullable = false)
   private String password;
 
   @NotBlank(message = "fullName cannot be blank")
-  @Column(nullable = false)
+  @Column(name = "full_name", nullable = false)
   private String fullName;
 
-  @Column(nullable = false)
+  @Column(name = "enabled", nullable = false)
   private Boolean enabled = true;
 
   @CreationTimestamp
-  @Column(nullable = false, updatable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -92,6 +98,14 @@ public class User {
     this.enabled = enabled;
   }
 
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
   public LocalDateTime getUpdatedAt() {
     return updatedAt;
   }
@@ -134,6 +148,7 @@ public class User {
     private String password;
     private String fullName;
     private Boolean enabled = true;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Wallet wallet;
     private java.util.List<Transaction> receivedTransactions;
@@ -164,6 +179,11 @@ public class User {
       return this;
     }
 
+    public UserBuilder createdAt(LocalDateTime createdAt) {
+      this.createdAt = createdAt;
+      return this;
+    }
+
     public UserBuilder updatedAt(LocalDateTime updatedAt) {
       this.updatedAt = updatedAt;
       return this;
@@ -191,6 +211,7 @@ public class User {
       user.password = this.password;
       user.fullName = this.fullName;
       user.enabled = this.enabled;
+      user.createdAt = this.createdAt;
       user.updatedAt = this.updatedAt;
       user.wallet = this.wallet;
       user.receivedTransactions = this.receivedTransactions;

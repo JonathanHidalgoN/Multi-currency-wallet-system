@@ -16,6 +16,7 @@ public class Wallet {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
   private Long id;
 
   @OneToOne(optional = false)
@@ -29,11 +30,11 @@ public class Wallet {
   private Map<String, BigDecimal> balances = new HashMap<>();
 
   @CreationTimestamp
-  @Column(nullable = false, updatable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   @UpdateTimestamp
-  @Column(nullable = false)
+  @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
   @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)

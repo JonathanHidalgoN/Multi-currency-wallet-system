@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -15,14 +16,15 @@ public class Role {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
   private Long id;
 
   @NotBlank(message = "role can not be blank")
-  @Column(nullable = false, unique = true)
+  @Column(name = "role", nullable = false, unique = true)
   private String role;
 
-  @CreationTimestamp
-  @Column(nullable = false, updatable = false)
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
   @ManyToMany(mappedBy = "roles")

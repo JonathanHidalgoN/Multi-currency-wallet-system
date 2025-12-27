@@ -13,9 +13,10 @@ public class Transaction {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
   private Long id;
 
-  @Column(nullable = false, unique = true)
+  @Column(name = "transaction_id", nullable = false, unique = true)
   private String transactionId;
 
   @ManyToOne(optional = false)
@@ -23,26 +24,26 @@ public class Transaction {
   private Wallet wallet;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(name = "type", nullable = false)
   private TransactionType type;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(name = "status", nullable = false)
   private TransactionStatus status;
 
-  @Column(nullable = false)
+  @Column(name = "amount", nullable = false)
   private BigDecimal amount;
 
-  @Column(nullable = false, length = 3)
+  @Column(name = "currency", nullable = false, length = 3)
   private String currency;
 
-  @Column(precision = 10, scale = 6)
+  @Column(name = "fee", precision = 10, scale = 6)
   private BigDecimal fee;
 
-  @Column(length = 3)
+  @Column(name = "recipient_currency", length = 3)
   private String recipientCurrency;
 
-  @Column(precision = 10, scale = 6)
+  @Column(name = "exchange_rate", precision = 10, scale = 6)
   private BigDecimal exchangeRate;
 
   @ManyToOne(optional = true)
@@ -50,10 +51,10 @@ public class Transaction {
   private User recipientUser;
 
   @CreationTimestamp
-  @Column(nullable = false, updatable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column(nullable = false)
+  @Column(name = "completed_at", nullable = false)
   private LocalDateTime completedAt;
 
   @Column(name = "failure_reason", nullable = true)
