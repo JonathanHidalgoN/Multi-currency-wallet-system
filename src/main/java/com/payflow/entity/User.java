@@ -1,6 +1,8 @@
 package com.payflow.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -41,6 +43,14 @@ public class User {
 
   @OneToMany(mappedBy = "recipientUser")
   private java.util.List<Transaction> receivedTransactions;
+
+  @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @JoinTable(
+      name = "user_roles",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id")
+  )
+  private Set<Role> roles = new HashSet<>();
 
   public Long getId() {
     return id;
@@ -106,6 +116,14 @@ public class User {
     this.receivedTransactions = receivedTransactions;
   }
 
+  public Set<Role> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(Set<Role> roles) {
+    this.roles = roles;
+  }
+
   public static UserBuilder builder() {
     return new UserBuilder();
   }
@@ -119,6 +137,7 @@ public class User {
     private LocalDateTime updatedAt;
     private Wallet wallet;
     private java.util.List<Transaction> receivedTransactions;
+    private Set<Role> roles = new HashSet<>();
 
     public UserBuilder id(Long id) {
       this.id = id;
@@ -160,6 +179,11 @@ public class User {
       return this;
     }
 
+    public UserBuilder roles(Set<Role> roles) {
+      this.roles = roles;
+      return this;
+    }
+
     public User build() {
       User user = new User();
       user.id = this.id;
@@ -170,6 +194,7 @@ public class User {
       user.updatedAt = this.updatedAt;
       user.wallet = this.wallet;
       user.receivedTransactions = this.receivedTransactions;
+      user.roles = this.roles;
       return user;
     }
   }
