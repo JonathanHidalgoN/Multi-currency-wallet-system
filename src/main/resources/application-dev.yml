@@ -25,5 +25,5 @@ logging:
 # ============================
 app:
   jwt:
-    secret: dev-secret-key-for-testing-only
+    secret: dev-secret-key-for-testing-only123213213123123384923423432432432
     expiration: 604800000  # 7 days for easier testing
