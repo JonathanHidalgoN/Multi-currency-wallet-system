@@ -18,12 +18,11 @@ public class ExchangeRateProperties {
   @NotBlank(message = "Exchange rate API URL must not be blank")
   private String apiUrl;
 
-  private String apiKey; // Optional - can be blank
+  private String apiKey;
 
   @Min(value = 1, message = "Cache duration must be at least 1 minute")
   private Integer cacheDurationMinutes = 5;
 
-  // Getters and Setters
   public String getApiUrl() {
     return apiUrl;
   }
