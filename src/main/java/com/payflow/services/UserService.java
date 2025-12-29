@@ -5,13 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.exception.DuplicateEmailException;
 import com.payflow.exception.UnauthorizedException;
+import com.payflow.repository.IRoleRepository;
 import com.payflow.repository.IUserRepository;
 
 import jakarta.transaction.Transactional;
+
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -22,13 +27,16 @@ public class UserService {
   private final IUserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final WalletService walletService;
+  private final IRoleRepository roleRepository;
 
   public UserService(IUserRepository userRepository,
       PasswordEncoder passwordEncoder,
-      WalletService walletService) {
+      WalletService walletService,
+      IRoleRepository roleRepository) {
     this.userRepository = userRepository;
     this.walletService = walletService;
     this.passwordEncoder = passwordEncoder;
+    this.roleRepository = roleRepository;
   }
 
   public User registerUser(String email, String password, String fullName) {
@@ -39,11 +47,18 @@ public class UserService {
       throw new DuplicateEmailException(email);
     }
 
+    Role userRole = roleRepository.findByRole("USER")
+        .orElseThrow(() -> new IllegalStateException("USER role not found in database"));
+
+    Set<Role> userSetRole = new HashSet<>();
+    userSetRole.add(userRole);
+
     User user = User.builder()
         .email(email)
         .password(passwordEncoder.encode(password))
         .fullName(fullName)
         .enabled(true)
+        .roles(userSetRole)
         .build();
 
     User savedUser = userRepository.save(user);
