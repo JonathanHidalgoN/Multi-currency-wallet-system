@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -41,8 +42,9 @@ class JwtTokenProviderTest {
   @Test
   void shouldGenerateValidToken() {
     Long userId = 123L;
+    Set<String> roles = Set.of("USER");
 
-    String token = jwtTokenProvider.generateToken(userId);
+    String token = jwtTokenProvider.generateToken(userId, roles);
 
     assertNotNull(token);
     assertFalse(token.isEmpty());
@@ -53,9 +55,10 @@ class JwtTokenProviderTest {
   void shouldGenerateDifferentTokensForDifferentUsers() {
     Long userId1 = 123L;
     Long userId2 = 456L;
+    Set<String> roles = Set.of("USER");
 
-    String token1 = jwtTokenProvider.generateToken(userId1);
-    String token2 = jwtTokenProvider.generateToken(userId2);
+    String token1 = jwtTokenProvider.generateToken(userId1, roles);
+    String token2 = jwtTokenProvider.generateToken(userId2, roles);
 
     assertNotEquals(token1, token2);
   }
@@ -63,8 +66,9 @@ class JwtTokenProviderTest {
   @Test
   void shouldExtractUserIdFromToken() {
     Long expectedUserId = 789L;
+    Set<String> roles = Set.of("USER");
 
-    String token = jwtTokenProvider.generateToken(expectedUserId);
+    String token = jwtTokenProvider.generateToken(expectedUserId, roles);
     Long actualUserId = jwtTokenProvider.getUserIdFromToken(token);
 
     assertEquals(expectedUserId, actualUserId);
@@ -73,7 +77,8 @@ class JwtTokenProviderTest {
   @Test
   void shouldValidateValidToken() {
     Long userId = 123L;
-    String token = jwtTokenProvider.generateToken(userId);
+    Set<String> roles = Set.of("USER");
+    String token = jwtTokenProvider.generateToken(userId, roles);
 
     boolean isValid = jwtTokenProvider.validateToken(token);
 
@@ -172,5 +177,27 @@ class JwtTokenProviderTest {
     boolean isValid = jwtTokenProvider.validateToken(tokenWithoutExpiration);
 
     assertTrue(isValid);
+  }
+
+  @Test
+  void shouldExtractRolesFromToken() {
+    Long userId = 123L;
+    Set<String> expectedRoles = Set.of("USER", "ADMIN");
+
+    String token = jwtTokenProvider.generateToken(userId, expectedRoles);
+    Set<String> actualRoles = jwtTokenProvider.getRolesFromToken(token);
+
+    assertEquals(expectedRoles, actualRoles);
+  }
+
+  @Test
+  void shouldReturnEmptySetWhenTokenHasNoRoles() {
+    Long userId = 123L;
+    Set<String> emptyRoles = Set.of();
+
+    String token = jwtTokenProvider.generateToken(userId, emptyRoles);
+    Set<String> actualRoles = jwtTokenProvider.getRolesFromToken(token);
+
+    assertTrue(actualRoles.isEmpty());
   }
 }
