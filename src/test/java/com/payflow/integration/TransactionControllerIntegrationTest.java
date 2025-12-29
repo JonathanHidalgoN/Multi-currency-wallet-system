@@ -291,7 +291,6 @@ class TransactionControllerIntegrationTest {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("100.00"), "USD");
     String idempotencyKey = "withdraw-idempotency-test-1";
 
-    // First withdrawal
     MvcResult firstResult = mockMvc.perform(post("/api/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
