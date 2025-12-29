@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
@@ -29,6 +28,9 @@ public class Role {
 
   @ManyToMany(mappedBy = "roles")
   private Set<User> users = new HashSet<>();
+
+  public Role() {
+  }
 
   public Role(String role) {
     this.role = role;
