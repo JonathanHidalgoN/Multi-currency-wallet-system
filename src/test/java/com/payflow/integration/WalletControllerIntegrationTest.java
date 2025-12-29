@@ -16,11 +16,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.security.JwtTokenProvider;
 import com.payflow.services.UserService;
 
 import jakarta.transaction.Transactional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,7 +65,13 @@ class WalletControllerIntegrationTest {
   @BeforeEach
   void setUp() {
     user = userService.registerUser("test@email.com", "password123", "Test user");
-    validToken = jwtTokenProvider.generateToken(user.getId());
+
+    // Extract roles from user
+    Set<String> roles = user.getRoles().stream()
+        .map(Role::getRole)
+        .collect(Collectors.toSet());
+
+    validToken = jwtTokenProvider.generateToken(user.getId(), roles);
   }
 
   @Test
