@@ -9,11 +9,13 @@ import com.payflow.services.UserService;
 import com.payflow.services.WalletService;
 import com.payflow.value.Money;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/wallets")
+@PreAuthorize("isAuthenticated()")
 public class WalletController {
 
   private final WalletService walletService;
