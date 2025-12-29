@@ -93,9 +93,9 @@ class TransactionServiceTest {
   @Test
   void shouldDepositWithVariousAmounts() {
     BigDecimal[] amounts = {
-        new BigDecimal("0.01"), // small
-        new BigDecimal("123.45"), // decimal
-        new BigDecimal("999999.99") // large
+        new BigDecimal("0.01"),
+        new BigDecimal("123.45"),
+        new BigDecimal("999999.99")
     };
 
     when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
@@ -156,9 +156,9 @@ class TransactionServiceTest {
   @Test
   void shouldWithdrawWithVariousAmounts() {
     BigDecimal[] amounts = {
-        new BigDecimal("0.01"), // small
-        new BigDecimal("50.50"), // decimal
-        new BigDecimal("500000.99") // large
+        new BigDecimal("0.01"),
+        new BigDecimal("50.50"),
+        new BigDecimal("500000.99")
     };
 
     when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
@@ -300,9 +300,9 @@ class TransactionServiceTest {
   @Test
   void shouldTransferWithVariousAmountsAndCurrencies() {
     Object[][] testCases = {
-        { new BigDecimal("0.01"), new BigDecimal("1.0"), "USD", "USD" }, // small same currency
-        { new BigDecimal("100.50"), new BigDecimal("0.92"), "USD", "EUR" }, // medium with conversion
-        { new BigDecimal("999999.99"), new BigDecimal("1.35"), "EUR", "GBP" } // large with conversion
+        { new BigDecimal("0.01"), new BigDecimal("1.0"), "USD", "USD" },
+        { new BigDecimal("100.50"), new BigDecimal("0.92"), "USD", "EUR" },
+        { new BigDecimal("999999.99"), new BigDecimal("1.35"), "EUR", "GBP" }
     };
 
     when(transactionRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
