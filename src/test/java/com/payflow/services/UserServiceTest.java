@@ -11,7 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.payflow.entity.Role;
 import com.payflow.entity.User;
+import com.payflow.repository.IRoleRepository;
 import com.payflow.repository.IUserRepository;
 
 import java.util.Optional;
@@ -26,13 +28,19 @@ class UserServiceTest {
   private PasswordEncoder passwordEncoder;
   @Mock
   private WalletService walletService;
+  @Mock
+  private IRoleRepository roleRepository;
   @InjectMocks
   private UserService userService;
 
   private User user;
+  private Role userRole;
 
   @BeforeEach
   void setUp() {
+    userRole = new Role("USER");
+    userRole.setId(1L);
+
     user = User.builder()
         .id(1L)
         .email("test@example.com")
@@ -51,6 +59,7 @@ class UserServiceTest {
 
     when(userRepository.existsByEmail(email)).thenReturn(false);
     when(passwordEncoder.encode(password)).thenReturn("encoded_password");
+    when(roleRepository.findByRole("USER")).thenReturn(Optional.of(userRole));
     when(userRepository.save(any(User.class))).thenReturn(user);
 
     User result = userService.registerUser(email, password, fullName);
@@ -60,6 +69,7 @@ class UserServiceTest {
     assertEquals(user.getPassword(), result.getPassword());
 
     verify(userRepository).existsByEmail(email);
+    verify(roleRepository).findByRole("USER");
     verify(userRepository).save(any());
     verify(walletService).createWalletForUser(any());
 
