@@ -4,9 +4,14 @@ import com.payflow.DTOS.AuthResponse;
 import com.payflow.DTOS.LoginRequest;
 import com.payflow.DTOS.RegisterRequest;
 import com.payflow.DTOS.UserResponse;
+import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.security.JwtTokenProvider;
 import com.payflow.services.UserService;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +52,9 @@ public class AuthController {
       @Valid @RequestBody LoginRequest request) {
 
     User user = userService.authenticate(request.email(), request.password());
-    String token = jwtTokenProvider.generateToken(user.getId());
+    Set<String> userRoles = user.getRoles()
+        .stream().map(Role::getRole).collect(Collectors.toSet());
+    String token = jwtTokenProvider.generateToken(user.getId(), userRoles);
 
     AuthResponse response = new AuthResponse(
         user.getId(),
