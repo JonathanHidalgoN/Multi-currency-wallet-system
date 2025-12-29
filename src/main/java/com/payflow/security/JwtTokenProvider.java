@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Component
 public class JwtTokenProvider {
@@ -29,17 +32,18 @@ public class JwtTokenProvider {
         jwtProperties.getExpiration());
   }
 
-  public String generateToken(Long userId) {
+  public String generateToken(Long userId, Set<String> roles) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration());
 
-    logger.debug("Generating JWT token for user ID: {}", userId);
+    logger.debug("Generating JWT token for user ID: {} with roles: {}", userId, roles);
 
     return Jwts.builder()
         .subject(String.valueOf(userId))
         .issuedAt(now)
         .expiration(expiryDate)
         .signWith(secretKey)
+        .claim("roles", roles)
         .compact();
   }
 
@@ -51,6 +55,23 @@ public class JwtTokenProvider {
         .getPayload();
 
     return Long.parseLong(claims.getSubject());
+  }
+
+  public Set<String> getRolesFromToken(String token) {
+    Claims claims = Jwts.parser()
+        .verifyWith(secretKey)
+        .build()
+        .parseSignedClaims(token)
+        .getPayload();
+
+    List<String> rolesList = claims.get("roles", List.class);
+
+    if (rolesList == null) {
+      return Set.of();
+    }
+
+    return new HashSet<>(rolesList);
+
   }
 
   public boolean validateToken(String token) {
