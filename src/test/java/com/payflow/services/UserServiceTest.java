@@ -17,6 +17,7 @@ import com.payflow.repository.IRoleRepository;
 import com.payflow.repository.IUserRepository;
 
 import java.util.Optional;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("User service tests")
@@ -219,6 +220,117 @@ class UserServiceTest {
 
     verify(userRepository).findByEmail(email);
     verify(passwordEncoder).matches(password, user.getPassword());
+  }
+
+  @Test
+  void shouldDisableUserSuccessfully() {
+    Long userId = 1L;
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+
+    userService.disableUser(userId);
+
+    verify(userRepository).findById(userId);
+    verify(userRepository).save(any(User.class));
+  }
+
+  @Test
+  void shouldThrowExceptionWhenDisablingNonExistentUser() {
+    Long userId = 999L;
+    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.disableUser(userId));
+
+    assertTrue(exception.getMessage().contains("User not found"));
+    verify(userRepository).findById(userId);
+    verify(userRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldEnableUserSuccessfully() {
+    Long userId = 1L;
+    user.setEnabled(false);
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+
+    userService.enableUser(userId);
+
+    verify(userRepository).findById(userId);
+    verify(userRepository).save(any(User.class));
+  }
+
+  @Test
+  void shouldThrowExceptionWhenEnablingNonExistentUser() {
+    Long userId = 999L;
+    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.enableUser(userId));
+
+    assertTrue(exception.getMessage().contains("User not found"));
+    verify(userRepository).findById(userId);
+    verify(userRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldUpdateUserRolesSuccessfully() {
+    Long userId = 1L;
+    Role adminRole = new Role("ADMIN");
+    adminRole.setId(2L);
+    Role auditorRole = new Role("AUDITOR");
+    auditorRole.setId(3L);
+
+    Set<String> roleNames = Set.of("ADMIN", "AUDITOR");
+
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(roleRepository.findByRole("ADMIN")).thenReturn(Optional.of(adminRole));
+    when(roleRepository.findByRole("AUDITOR")).thenReturn(Optional.of(auditorRole));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+
+    userService.updateUserRoles(userId, roleNames);
+
+    verify(userRepository).findById(userId);
+    verify(roleRepository).findByRole("ADMIN");
+    verify(roleRepository).findByRole("AUDITOR");
+    verify(userRepository).save(any(User.class));
+  }
+
+  @Test
+  void shouldThrowExceptionWhenUpdatingRolesForNonExistentUser() {
+    Long userId = 999L;
+    Set<String> roleNames = Set.of("ADMIN");
+
+    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.updateUserRoles(userId, roleNames));
+
+    assertTrue(exception.getMessage().contains("User not found"));
+    verify(userRepository).findById(userId);
+    verify(roleRepository, never()).findByRole(any());
+    verify(userRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenUpdatingWithNonExistentRole() {
+    Long userId = 1L;
+    Set<String> roleNames = Set.of("INVALID_ROLE");
+
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(roleRepository.findByRole("INVALID_ROLE")).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.updateUserRoles(userId, roleNames));
+
+    assertTrue(exception.getMessage().contains("Role not found"));
+    verify(userRepository).findById(userId);
+    verify(roleRepository).findByRole("INVALID_ROLE");
+    verify(userRepository, never()).save(any());
   }
 
 }
