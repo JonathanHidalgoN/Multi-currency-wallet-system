@@ -2,6 +2,8 @@ package com.payflow.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -124,6 +127,49 @@ public class UserService {
 
     logger.info("Authentication successful for user ID: {}, email: {}", user.getId(), email);
     return user;
+  }
+
+  public Page<User> getUsers(Pageable pageable) {
+    logger.info("Getting users with filters");
+    return userRepository.findAll(pageable);
+  }
+
+  public void disableUser(long userId) {
+    logger.info("Disabling user with id: {}", userId);
+    User user = findById(userId)
+        .orElseThrow(() -> {
+          logger.warn("User not found with ID: {}", userId);
+          return new IllegalArgumentException("User not found");
+        });
+    user.setEnabled(false);
+    userRepository.save(user);
+    logger.info("Disabled user with id: {}", userId);
+  }
+
+  public void enableUser(long userId) {
+    logger.info("Enabling user with id: {}", userId);
+    User user = findById(userId)
+        .orElseThrow(() -> {
+          logger.warn("User not found with ID: {}", userId);
+          return new IllegalArgumentException("User not found");
+        });
+    user.setEnabled(true);
+    userRepository.save(user);
+    logger.info("Enabled user with id: {}", userId);
+  }
+
+  public void updateUserRoles(Long userId, Set<String> roleNames) {
+    logger.info("Updating roles for user ID: {}", userId);
+    User user = getUserById(userId);
+
+    Set<Role> roles = roleNames.stream()
+        .map(roleName -> roleRepository.findByRole(roleName)
+            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName)))
+        .collect(Collectors.toSet());
+
+    user.setRoles(roles);
+    userRepository.save(user);
+    logger.info("Roles updated successfully for user ID: {}", userId);
   }
 
 }
