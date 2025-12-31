@@ -10,10 +10,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.payflow.DTOS.TransactionFilter;
 import com.payflow.entity.Transaction;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
@@ -251,16 +253,17 @@ class TransactionServiceTest {
     List<Transaction> transactions = Arrays.asList(transaction);
     Page<Transaction> page = new PageImpl<>(transactions, pageable, 1);
 
-    when(transactionRepository.findByWallet(wallet, pageable)).thenReturn(page);
+    when(transactionRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-    Page<Transaction> result = transactionService.getTransactionHistory(wallet, pageable);
+    TransactionFilter filter = new TransactionFilter(null, null, null, null, null, null, null);
+    Page<Transaction> result = transactionService.getTransactionHistory(wallet, filter, pageable);
 
     assertNotNull(result);
     assertEquals(1, result.getTotalElements());
     assertEquals(1, result.getContent().size());
     assertEquals(transaction.getTransactionId(), result.getContent().get(0).getTransactionId());
 
-    verify(transactionRepository).findByWallet(wallet, pageable);
+    verify(transactionRepository).findAll(any(Specification.class), eq(pageable));
   }
 
   @Test
@@ -268,15 +271,16 @@ class TransactionServiceTest {
     Pageable pageable = PageRequest.of(0, 10);
     Page<Transaction> page = new PageImpl<>(Arrays.asList(), pageable, 0);
 
-    when(transactionRepository.findByWallet(wallet, pageable)).thenReturn(page);
+    when(transactionRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-    Page<Transaction> result = transactionService.getTransactionHistory(wallet, pageable);
+    TransactionFilter filter = new TransactionFilter(null, null, null, null, null, null, null);
+    Page<Transaction> result = transactionService.getTransactionHistory(wallet, filter, pageable);
 
     assertNotNull(result);
     assertEquals(0, result.getTotalElements());
     assertTrue(result.getContent().isEmpty());
 
-    verify(transactionRepository).findByWallet(wallet, pageable);
+    verify(transactionRepository).findAll(any(Specification.class), eq(pageable));
   }
 
   @Test
@@ -285,16 +289,17 @@ class TransactionServiceTest {
     List<Transaction> transactions = Arrays.asList(transaction, transaction);
     Page<Transaction> page = new PageImpl<>(transactions, pageable, 20);
 
-    when(transactionRepository.findByWallet(wallet, pageable)).thenReturn(page);
+    when(transactionRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-    Page<Transaction> result = transactionService.getTransactionHistory(wallet, pageable);
+    TransactionFilter filter = new TransactionFilter(null, null, null, null, null, null, null);
+    Page<Transaction> result = transactionService.getTransactionHistory(wallet, filter, pageable);
 
     assertNotNull(result);
     assertEquals(20, result.getTotalElements());
     assertEquals(2, result.getContent().size());
     assertTrue(result.hasNext());
 
-    verify(transactionRepository).findByWallet(wallet, pageable);
+    verify(transactionRepository).findAll(any(Specification.class), eq(pageable));
   }
 
   @Test
