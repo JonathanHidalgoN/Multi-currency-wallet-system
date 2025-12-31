@@ -68,4 +68,14 @@ public class Role {
     this.users = users;
   }
 
+  public static class Fields {
+    public static final String ID = "id";
+    public static final String ROLE = "role";
+    public static final String UPDATED_AT = "updatedAt";
+    public static final String USERS = "users";
+
+    private Fields() {
+    }
+  }
+
 }

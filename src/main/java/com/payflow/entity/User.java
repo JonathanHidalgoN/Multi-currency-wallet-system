@@ -138,6 +138,22 @@ public class User {
     this.roles = roles;
   }
 
+  public static class Fields {
+    public static final String ID = "id";
+    public static final String EMAIL = "email";
+    public static final String PASSWORD = "password";
+    public static final String FULL_NAME = "fullName";
+    public static final String ENABLED = "enabled";
+    public static final String CREATED_AT = "createdAt";
+    public static final String UPDATED_AT = "updatedAt";
+    public static final String WALLET = "wallet";
+    public static final String RECEIVED_TRANSACTIONS = "receivedTransactions";
+    public static final String ROLES = "roles";
+
+    private Fields() {
+    }
+  }
+
   public static UserBuilder builder() {
     return new UserBuilder();
   }

@@ -184,6 +184,27 @@ public class Transaction {
     this.idempotencyKey = idempotencyKey;
   }
 
+  public static class Fields {
+    public static final String ID = "id";
+    public static final String TRANSACTION_ID = "transactionId";
+    public static final String WALLET = "wallet";
+    public static final String TYPE = "type";
+    public static final String STATUS = "status";
+    public static final String AMOUNT = "amount";
+    public static final String CURRENCY = "currency";
+    public static final String FEE = "fee";
+    public static final String RECIPIENT_CURRENCY = "recipientCurrency";
+    public static final String EXCHANGE_RATE = "exchangeRate";
+    public static final String RECIPIENT_USER = "recipientUser";
+    public static final String CREATED_AT = "createdAt";
+    public static final String COMPLETED_AT = "completedAt";
+    public static final String FAILURE_REASON = "failureReason";
+    public static final String IDEMPOTENCY_KEY = "idempotencyKey";
+
+    private Fields() {
+    }
+  }
+
   public static TransactionBuilder builder() {
     return new TransactionBuilder();
   }
