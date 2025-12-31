@@ -7,13 +7,15 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.payflow.entity.Transaction;
 import com.payflow.entity.Wallet;
 
 @Repository
-public interface ITransactionRepository extends JpaRepository<Transaction, Long> {
+public interface ITransactionRepository extends JpaRepository<Transaction, Long>,
+                                                JpaSpecificationExecutor<Transaction> {
   Optional<Transaction> findByTransactionId(String transactionId);
 
   Optional<Transaction> findByIdempotencyKey(String idempotencyKey);
