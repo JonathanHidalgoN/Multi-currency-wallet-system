@@ -1,10 +1,14 @@
 package com.payflow.controller;
 
+import com.payflow.DTOS.FullWalletResponse;
 import com.payflow.DTOS.UserDTO;
 import com.payflow.DTOS.UserFilter;
+import com.payflow.DTOS.WalletFilter;
 import com.payflow.entity.Role;
 import com.payflow.entity.User;
+import com.payflow.entity.Wallet;
 import com.payflow.services.UserService;
+import com.payflow.services.WalletService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -28,9 +32,11 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
   private final UserService userService;
+  private final WalletService walletService;
 
-  public AdminController(UserService userService) {
+  public AdminController(UserService userService, WalletService walletService) {
     this.userService = userService;
+    this.walletService = walletService;
   }
 
   @PreAuthorize("hasAnyRole('ADMIN','AUDITOR')")
@@ -48,6 +54,23 @@ public class AdminController {
         u.getCreatedAt(),
         u.getUpdatedAt(),
         u.getRoles().stream().map(Role::getRole).collect(Collectors.toSet())));
+
+    return ResponseEntity.ok(dtoPage);
+  }
+
+  @PreAuthorize("hasAnyRole('ADMIN','AUDITOR')")
+  @GetMapping("/wallets")
+  public ResponseEntity<Page<FullWalletResponse>> getAllWallets(
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      @Valid @ModelAttribute WalletFilter filter) {
+
+    Page<Wallet> wallets = walletService.getWallets(filter, pageable);
+    Page<FullWalletResponse> dtoPage = wallets.map(w -> new FullWalletResponse(
+        w.getId(),
+        w.getUser().getId(),
+        w.getBalances(),
+        w.getCreatedAt(),
+        w.getUpdatedAt()));
 
     return ResponseEntity.ok(dtoPage);
   }
