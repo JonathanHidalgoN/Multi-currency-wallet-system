@@ -19,8 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -154,25 +151,10 @@ public class TransactionController {
   public ResponseEntity<Page<TransactionDTO>> getTransactionHistory(
       Authentication authentication,
       @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      @RequestParam(required = false) String currency,
-      @RequestParam(required = false) Transaction.TransactionType type,
-      @RequestParam(required = false) Transaction.TransactionStatus status,
-      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate toDate,
-      @RequestParam(required = false) BigDecimal minAmount,
-      @RequestParam(required = false) BigDecimal maxAmount) {
+      @Valid @ModelAttribute TransactionFilter filter) {
 
     User user = userService.getUserById(Long.parseLong(authentication.getName()));
     Wallet wallet = walletService.getWalletByUserReadOnly(user);
-
-    TransactionFilter filter = new TransactionFilter(
-        currency,
-        type,
-        status,
-        fromDate,
-        toDate,
-        minAmount,
-        maxAmount);
 
     Page<Transaction> transactions = transactionService.getTransactionHistory(wallet, filter, pageable);
 
