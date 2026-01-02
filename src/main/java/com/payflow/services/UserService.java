@@ -4,15 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.payflow.DTOS.UserFilter;
 import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.exception.DuplicateEmailException;
 import com.payflow.exception.UnauthorizedException;
 import com.payflow.repository.IRoleRepository;
 import com.payflow.repository.IUserRepository;
+import com.payflow.specification.UserSpecification;
 
 import jakarta.transaction.Transactional;
 
@@ -129,9 +132,12 @@ public class UserService {
     return user;
   }
 
-  public Page<User> getUsers(Pageable pageable) {
-    logger.info("Getting users with filters");
-    return userRepository.findAll(pageable);
+  public Page<User> getUsers(UserFilter filter, Pageable pageable) {
+    logger.info("Getting users with filters: email={}, fullName={}, enabled={}, fromDate={}, toDate={}, roleName={}",
+        filter.email(), filter.fullName(), filter.enabled(), filter.fromDate(), filter.toDate(), filter.roleName());
+
+    Specification<User> spec = UserSpecification.buildSpec(filter);
+    return userRepository.findAll(spec, pageable);
   }
 
   public void disableUser(long userId) {

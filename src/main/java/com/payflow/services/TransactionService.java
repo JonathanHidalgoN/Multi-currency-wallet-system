@@ -1,15 +1,18 @@
 package com.payflow.services;
 
+import com.payflow.DTOS.TransactionFilter;
 import com.payflow.entity.Transaction;
 import com.payflow.entity.Wallet;
 import com.payflow.entity.User;
 import com.payflow.repository.ITransactionRepository;
 import com.payflow.repository.IWalletRepository;
+import com.payflow.specification.TransactionSpecification;
 import com.payflow.value.Money;
 
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -231,7 +234,8 @@ public class TransactionService {
     return transactionRepository.findByTransactionId(transactionId);
   }
 
-  public Page<Transaction> getTransactionHistory(Wallet wallet, Pageable pageable) {
-    return transactionRepository.findByWallet(wallet, pageable);
+  public Page<Transaction> getTransactionHistory(Wallet wallet, TransactionFilter filter, Pageable pageable) {
+    Specification<Transaction> spec = TransactionSpecification.buildSpec(wallet, filter);
+    return transactionRepository.findAll(spec, pageable);
   }
 }
