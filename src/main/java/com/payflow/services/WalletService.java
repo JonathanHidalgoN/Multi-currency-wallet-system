@@ -2,11 +2,16 @@ package com.payflow.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.payflow.DTOS.WalletFilter;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.repository.IWalletRepository;
+import com.payflow.specification.WalletSpecification;
 import com.payflow.value.Money;
 
 import jakarta.transaction.Transactional;
@@ -109,6 +114,14 @@ public class WalletService {
     wallet.subtractBalance(amount);
     walletRepository.save(wallet);
     logger.debug("Balance subtracted successfully - New balance: {}", wallet.getBalance(amount.getCurrency()));
+  }
+
+  public Page<Wallet> getWallets(WalletFilter filter, Pageable pageable) {
+    logger.info("Getting wallets with filters: userId={}, currency={}, fromDate={}, toDate={}",
+        filter.userId(), filter.currency(), filter.fromDate(), filter.toDate());
+
+    Specification<Wallet> spec = WalletSpecification.buildSpec(filter);
+    return walletRepository.findAll(spec, pageable);
   }
 
 }
