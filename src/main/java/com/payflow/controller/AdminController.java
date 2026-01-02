@@ -1,11 +1,12 @@
 package com.payflow.controller;
 
 import com.payflow.DTOS.UserDTO;
+import com.payflow.DTOS.UserFilter;
 import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.services.UserService;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
@@ -13,8 +14,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -34,11 +36,10 @@ public class AdminController {
   @PreAuthorize("hasAnyRole('ADMIN','AUDITOR')")
   @GetMapping("/users")
   public ResponseEntity<Page<UserDTO>> getAllUsers(
-      @RequestParam(defaultValue = "0") @Min(0) int page,
-      @RequestParam(defaultValue = "10") @Min(1) int size) {
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      @Valid @ModelAttribute UserFilter filter) {
 
-    Pageable pageable = PageRequest.of(page, size);
-    Page<User> userDTOs = userService.getUsers(pageable);
+    Page<User> userDTOs = userService.getUsers(filter, pageable);
     Page<UserDTO> dtoPage = userDTOs.map(u -> new UserDTO(
         u.getId(),
         u.getEmail(),
