@@ -1,6 +1,6 @@
 package com.payflow.specification;
 
-import com.payflow.DTOS.UserFilter;
+import com.payflow.dto.v1.request.UserFilter;
 import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import jakarta.persistence.criteria.Join;

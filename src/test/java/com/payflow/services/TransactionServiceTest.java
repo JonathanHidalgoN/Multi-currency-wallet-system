@@ -15,7 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.payflow.DTOS.TransactionFilter;
+import com.payflow.dto.v1.request.TransactionFilter;
 import com.payflow.entity.Transaction;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;

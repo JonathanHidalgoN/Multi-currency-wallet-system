@@ -76,27 +76,27 @@ class WalletControllerIntegrationTest {
 
   @Test
   void shouldGetWalletDetailsWithValidToken() throws Exception {
-    mockMvc.perform(get("/api/wallets/me")
+    mockMvc.perform(get("/api/v1/wallets/me")
         .header("Authorization", "Bearer " + validToken))
         .andExpect(status().isOk());
   }
 
   @Test
   void shouldReturn403WhenNoTokenProvided() throws Exception {
-    mockMvc.perform(get("/api/wallets/me"))
+    mockMvc.perform(get("/api/v1/wallets/me"))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void shouldReturn403WithInvalidToken() throws Exception {
-    mockMvc.perform(get("/api/wallets/me")
+    mockMvc.perform(get("/api/v1/wallets/me")
         .header("Authorization", "Bearer invalid.token.here"))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void shouldGetBalanceForSpecificCurrency() throws Exception {
-    mockMvc.perform(get("/api/wallets/me/balance")
+    mockMvc.perform(get("/api/v1/wallets/me/balance")
         .param("currency", "USD")
         .header("Authorization", "Bearer " + validToken))
         .andExpect(status().isOk());
@@ -104,14 +104,14 @@ class WalletControllerIntegrationTest {
 
   @Test
   void shouldGetAllBalances() throws Exception {
-    mockMvc.perform(get("/api/wallets/me/balances")
+    mockMvc.perform(get("/api/v1/wallets/me/balances")
         .header("Authorization", "Bearer " + validToken))
         .andExpect(status().isOk());
   }
 
   @Test
   void shouldReturn400WhenCurrencyParameterMissing() throws Exception {
-    mockMvc.perform(get("/api/wallets/me/balance")
+    mockMvc.perform(get("/api/v1/wallets/me/balance")
         .header("Authorization", "Bearer " + validToken))
         .andExpect(status().isBadRequest());
   }

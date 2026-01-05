@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.payflow.DTOS.WalletFilter;
+import com.payflow.dto.v1.request.WalletFilter;
 import com.payflow.entity.User;
 import com.payflow.entity.Wallet;
 import com.payflow.repository.IWalletRepository;

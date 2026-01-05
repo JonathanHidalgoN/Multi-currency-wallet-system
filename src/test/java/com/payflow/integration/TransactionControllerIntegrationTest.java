@@ -25,11 +25,11 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payflow.DTOS.DepositRequest;
-import com.payflow.DTOS.LoginRequest;
-import com.payflow.DTOS.RegisterRequest;
-import com.payflow.DTOS.TransferRequest;
-import com.payflow.DTOS.WithdrawRequest;
+import com.payflow.dto.v1.request.DepositRequest;
+import com.payflow.dto.v1.request.LoginRequest;
+import com.payflow.dto.v1.request.RegisterRequest;
+import com.payflow.dto.v1.request.TransferRequest;
+import com.payflow.dto.v1.request.WithdrawRequest;
 
 import jakarta.transaction.Transactional;
 
@@ -85,14 +85,14 @@ class TransactionControllerIntegrationTest {
   private MvcResult registerAndLogin(String email, String password, String fullName) throws Exception {
     RegisterRequest registerRequest = new RegisterRequest(email, password, fullName);
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isCreated());
 
     LoginRequest loginRequest = new LoginRequest(email, password);
 
-    return mockMvc.perform(post("/api/auth/login")
+    return mockMvc.perform(post("/api/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(loginRequest)))
         .andExpect(status().isOk())
@@ -103,7 +103,7 @@ class TransactionControllerIntegrationTest {
   void shouldDepositSuccessfully() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "deposit-test-1")
         .contentType(MediaType.APPLICATION_JSON)
@@ -114,7 +114,7 @@ class TransactionControllerIntegrationTest {
   @Test
   void shouldWithdrawSuccessfully() throws Exception {
     DepositRequest depositRequest = new DepositRequest(new BigDecimal("200.00"), "USD");
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "withdraw-test-setup")
         .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +123,7 @@ class TransactionControllerIntegrationTest {
 
     WithdrawRequest withdrawRequest = new WithdrawRequest(new BigDecimal("50.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/withdraw")
+    mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "withdraw-test-1")
         .contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +135,7 @@ class TransactionControllerIntegrationTest {
   void shouldFailWithdrawWhenInsufficientFunds() throws Exception {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("1000.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/withdraw")
+    mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "insufficient-funds-test")
         .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +146,7 @@ class TransactionControllerIntegrationTest {
   @Test
   void shouldTransferSuccessfully() throws Exception {
     DepositRequest depositRequest = new DepositRequest(new BigDecimal("500.00"), "USD");
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "transfer-test-setup")
         .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +159,7 @@ class TransactionControllerIntegrationTest {
         "USD",
         new BigDecimal("100.00"));
 
-    mockMvc.perform(post("/api/transactions/transfer")
+    mockMvc.perform(post("/api/v1/transactions/transfer")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "transfer-test-1")
         .contentType(MediaType.APPLICATION_JSON)
@@ -170,14 +170,14 @@ class TransactionControllerIntegrationTest {
   @Test
   void shouldGetTransactionHistory() throws Exception {
     DepositRequest depositRequest = new DepositRequest(new BigDecimal("100.00"), "USD");
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "history-test-setup")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(depositRequest)))
         .andExpect(status().isCreated());
 
-    mockMvc.perform(get("/api/transactions/history")
+    mockMvc.perform(get("/api/v1/transactions/history")
         .header("Authorization", "Bearer " + userToken)
         .param("page", "0")
         .param("size", "10"))
@@ -189,7 +189,7 @@ class TransactionControllerIntegrationTest {
   void shouldReturn403WhenNotAuthenticated() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isForbidden());
@@ -199,7 +199,7 @@ class TransactionControllerIntegrationTest {
   void shouldReturn400WhenDepositWithInvalidAmount() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("-50.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "invalid-amount-test")
         .contentType(MediaType.APPLICATION_JSON)
@@ -211,7 +211,7 @@ class TransactionControllerIntegrationTest {
   void shouldReturn400WhenWithdrawWithInvalidAmount() throws Exception {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("0"), "USD");
 
-    mockMvc.perform(post("/api/transactions/withdraw")
+    mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "invalid-withdraw-amount-test")
         .contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +223,7 @@ class TransactionControllerIntegrationTest {
   void shouldPaginateTransactionHistory() throws Exception {
     for (int i = 0; i < 15; i++) {
       DepositRequest depositRequest = new DepositRequest(new BigDecimal("10.00"), "USD");
-      mockMvc.perform(post("/api/transactions/deposit")
+      mockMvc.perform(post("/api/v1/transactions/deposit")
           .header("Authorization", "Bearer " + userToken)
           .header("Idempotency-Key", "pagination-test-" + i)
           .contentType(MediaType.APPLICATION_JSON)
@@ -231,7 +231,7 @@ class TransactionControllerIntegrationTest {
           .andExpect(status().isCreated());
     }
 
-    mockMvc.perform(get("/api/transactions/history")
+    mockMvc.perform(get("/api/v1/transactions/history")
         .header("Authorization", "Bearer " + userToken)
         .param("page", "0")
         .param("size", "10"))
@@ -240,7 +240,7 @@ class TransactionControllerIntegrationTest {
         .andExpect(jsonPath("$.totalElements").value(15))
         .andExpect(jsonPath("$.totalPages").value(2));
 
-    mockMvc.perform(get("/api/transactions/history")
+    mockMvc.perform(get("/api/v1/transactions/history")
         .header("Authorization", "Bearer " + userToken)
         .param("page", "1")
         .param("size", "10"))
@@ -253,7 +253,7 @@ class TransactionControllerIntegrationTest {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
     String idempotencyKey = "deposit-idempotency-test-1";
 
-    MvcResult firstResult = mockMvc.perform(post("/api/transactions/deposit")
+    MvcResult firstResult = mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -264,7 +264,7 @@ class TransactionControllerIntegrationTest {
     String firstTransactionId = objectMapper.readTree(firstResult.getResponse().getContentAsString())
         .get("transactionId").asText();
 
-    MvcResult secondResult = mockMvc.perform(post("/api/transactions/deposit")
+    MvcResult secondResult = mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -281,7 +281,7 @@ class TransactionControllerIntegrationTest {
   @Test
   void shouldReturnSameTransactionForDuplicateWithdrawWithSameIdempotencyKey() throws Exception {
     DepositRequest depositRequest = new DepositRequest(new BigDecimal("500.00"), "USD");
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "setup-deposit-for-withdraw-idempotency-test")
         .contentType(MediaType.APPLICATION_JSON)
@@ -291,7 +291,7 @@ class TransactionControllerIntegrationTest {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("100.00"), "USD");
     String idempotencyKey = "withdraw-idempotency-test-1";
 
-    MvcResult firstResult = mockMvc.perform(post("/api/transactions/withdraw")
+    MvcResult firstResult = mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -302,7 +302,7 @@ class TransactionControllerIntegrationTest {
     String firstTransactionId = objectMapper.readTree(firstResult.getResponse().getContentAsString())
         .get("transactionId").asText();
 
-    MvcResult secondResult = mockMvc.perform(post("/api/transactions/withdraw")
+    MvcResult secondResult = mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -319,7 +319,7 @@ class TransactionControllerIntegrationTest {
   @Test
   void shouldReturnSameTransactionForDuplicateTransferWithSameIdempotencyKey() throws Exception {
     DepositRequest depositRequest = new DepositRequest(new BigDecimal("500.00"), "USD");
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "setup-deposit-for-transfer-idempotency-test")
         .contentType(MediaType.APPLICATION_JSON)
@@ -333,7 +333,7 @@ class TransactionControllerIntegrationTest {
         new BigDecimal("100.00"));
     String idempotencyKey = "transfer-idempotency-test-1";
 
-    MvcResult firstResult = mockMvc.perform(post("/api/transactions/transfer")
+    MvcResult firstResult = mockMvc.perform(post("/api/v1/transactions/transfer")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -344,7 +344,7 @@ class TransactionControllerIntegrationTest {
     String firstTransactionId = objectMapper.readTree(firstResult.getResponse().getContentAsString())
         .get("transactionId").asText();
 
-    MvcResult secondResult = mockMvc.perform(post("/api/transactions/transfer")
+    MvcResult secondResult = mockMvc.perform(post("/api/v1/transactions/transfer")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", idempotencyKey)
         .contentType(MediaType.APPLICATION_JSON)
@@ -362,7 +362,7 @@ class TransactionControllerIntegrationTest {
   void shouldCreateDifferentTransactionsForDifferentIdempotencyKeys() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
 
-    MvcResult firstResult = mockMvc.perform(post("/api/transactions/deposit")
+    MvcResult firstResult = mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "unique-key-1")
         .contentType(MediaType.APPLICATION_JSON)
@@ -373,7 +373,7 @@ class TransactionControllerIntegrationTest {
     String firstTransactionId = objectMapper.readTree(firstResult.getResponse().getContentAsString())
         .get("transactionId").asText();
 
-    MvcResult secondResult = mockMvc.perform(post("/api/transactions/deposit")
+    MvcResult secondResult = mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "unique-key-2")
         .contentType(MediaType.APPLICATION_JSON)
@@ -392,7 +392,7 @@ class TransactionControllerIntegrationTest {
   void shouldFailDepositWhenIdempotencyKeyIsMissing() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
@@ -403,7 +403,7 @@ class TransactionControllerIntegrationTest {
   void shouldFailWithdrawWhenIdempotencyKeyIsMissing() throws Exception {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/withdraw")
+    mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
@@ -418,7 +418,7 @@ class TransactionControllerIntegrationTest {
         "USD",
         new BigDecimal("100.00"));
 
-    mockMvc.perform(post("/api/transactions/transfer")
+    mockMvc.perform(post("/api/v1/transactions/transfer")
         .header("Authorization", "Bearer " + userToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
@@ -429,7 +429,7 @@ class TransactionControllerIntegrationTest {
   void shouldFailWhenIdempotencyKeyIsBlank() throws Exception {
     DepositRequest request = new DepositRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/deposit")
+    mockMvc.perform(post("/api/v1/transactions/deposit")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "   ")
         .contentType(MediaType.APPLICATION_JSON)
@@ -441,7 +441,7 @@ class TransactionControllerIntegrationTest {
   void shouldFailWhenIdempotencyKeyIsEmpty() throws Exception {
     WithdrawRequest request = new WithdrawRequest(new BigDecimal("100.00"), "USD");
 
-    mockMvc.perform(post("/api/transactions/withdraw")
+    mockMvc.perform(post("/api/v1/transactions/withdraw")
         .header("Authorization", "Bearer " + userToken)
         .header("Idempotency-Key", "")
         .contentType(MediaType.APPLICATION_JSON)

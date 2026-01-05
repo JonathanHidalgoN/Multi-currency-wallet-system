@@ -1,6 +1,6 @@
 package com.payflow.exception;
 
-import com.payflow.DTOS.ErrorResponse;
+import com.payflow.dto.v1.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

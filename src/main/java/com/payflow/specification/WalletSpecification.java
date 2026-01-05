@@ -1,6 +1,6 @@
 package com.payflow.specification;
 
-import com.payflow.DTOS.WalletFilter;
+import com.payflow.dto.v1.request.WalletFilter;
 import com.payflow.entity.Wallet;
 import jakarta.persistence.criteria.MapJoin;
 import jakarta.persistence.criteria.Predicate;

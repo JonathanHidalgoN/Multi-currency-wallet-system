@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.payflow.DTOS.UserFilter;
+import com.payflow.dto.v1.request.UserFilter;
 import com.payflow.entity.Role;
 import com.payflow.entity.User;
 import com.payflow.exception.DuplicateEmailException;

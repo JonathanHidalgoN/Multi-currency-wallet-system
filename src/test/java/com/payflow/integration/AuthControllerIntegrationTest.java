@@ -18,8 +18,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payflow.DTOS.LoginRequest;
-import com.payflow.DTOS.RegisterRequest;
+import com.payflow.dto.v1.request.LoginRequest;
+import com.payflow.dto.v1.request.RegisterRequest;
 
 import jakarta.transaction.Transactional;
 
@@ -61,7 +61,7 @@ class AuthControllerIntegrationTest {
         "SecurePass123!",
         "John Doe");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
@@ -74,7 +74,7 @@ class AuthControllerIntegrationTest {
         "Password123!",
         "Jane Smith");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isCreated());
@@ -83,7 +83,7 @@ class AuthControllerIntegrationTest {
         "logintest@example.com",
         "Password123!");
 
-    mockMvc.perform(post("/api/auth/login")
+    mockMvc.perform(post("/api/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(loginRequest)))
         .andExpect(status().isOk());
@@ -96,7 +96,7 @@ class AuthControllerIntegrationTest {
         "CorrectPass123!",
         "Bob Wilson");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isCreated());
@@ -105,7 +105,7 @@ class AuthControllerIntegrationTest {
         "wrongpass@example.com",
         "WrongPassword!");
 
-    mockMvc.perform(post("/api/auth/login")
+    mockMvc.perform(post("/api/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(loginRequest)))
         .andExpect(status().isUnauthorized());
@@ -117,7 +117,7 @@ class AuthControllerIntegrationTest {
         "nonexistent@example.com",
         "SomePassword123!");
 
-    mockMvc.perform(post("/api/auth/login")
+    mockMvc.perform(post("/api/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(loginRequest)))
         .andExpect(status().isUnauthorized());
@@ -130,7 +130,7 @@ class AuthControllerIntegrationTest {
         "ValidPass123!",
         "Test User");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
@@ -143,7 +143,7 @@ class AuthControllerIntegrationTest {
         "weak",
         "Test User");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
@@ -156,7 +156,7 @@ class AuthControllerIntegrationTest {
         "ValidPass123!",
         "");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
@@ -169,7 +169,7 @@ class AuthControllerIntegrationTest {
         "Password123!",
         "First User");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
@@ -179,7 +179,7 @@ class AuthControllerIntegrationTest {
         "DifferentPass123!",
         "Second User");
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isConflict())
@@ -190,7 +190,7 @@ class AuthControllerIntegrationTest {
   void shouldReturn400WhenRegisterWithMissingFields() throws Exception {
     String invalidJson = "{}";
 
-    mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/v1/auth/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(invalidJson))
         .andExpect(status().isBadRequest());
@@ -200,7 +200,7 @@ class AuthControllerIntegrationTest {
   void shouldReturn400WhenLoginWithMissingPassword() throws Exception {
     String invalidJson = "{\"email\":\"test@example.com\"}";
 
-    mockMvc.perform(post("/api/auth/login")
+    mockMvc.perform(post("/api/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(invalidJson))
         .andExpect(status().isBadRequest());
