@@ -110,6 +110,11 @@ springdoc:
     enabled: true
     operationsSorter: method
     tagsSorter: alpha
+    display-request-duration: true
+  group-configs:
+    - group: v1
+      paths-to-match: /api/v1/**
+      display-name: API v1 (Current)
 
 # ============================
 # Actuator Configuration (Health & Monitoring)
