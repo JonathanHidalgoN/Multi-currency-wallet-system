@@ -23,10 +23,14 @@ Controllers → Services → Repositories → Database
 wallet-api/
 ├── src/main/java/com/payflow/
 │   ├── controller/           # REST endpoints
+│   │   └── v1/               # Version 1 controllers
 │   ├── services/             # Business logic
 │   ├── repository/           # Data access
 │   ├── entity/               # Domain entities
-│   ├── DTOS/                 # Request/Response objects
+│   ├── dto/                  # Request/Response objects
+│   │   └── v1/               # Version 1 DTOs
+│   │       ├── request/
+│   │       └── response/
 │   ├── value/                # Value objects (Money)
 │   ├── security/             # JWT authentication
 │   ├── config/               # Configuration classes
@@ -34,6 +38,7 @@ wallet-api/
 │   ├── filter/               # Request filters
 │   ├── iterceptor/           # Request interceptors
 │   ├── validation/           # Custom validators
+│   ├── specification/        # JPA specifications
 │   ├── util/                 # Utility classes
 │   ├── RateLimitService.java # Rate limiting service
 │   └── App.java              # Main application class
@@ -44,30 +49,59 @@ wallet-api/
 ├── src/test/java/com/payflow/
 │   ├── services/
 │   ├── entity/
-│   └── value/
+│   ├── value/
+│   └── integration/          # Integration tests
+├── docs/                     # API documentation
+│   ├── api-versioning-strategy.md
+│   └── migrations/
+│       └── v0-to-v1-migration.md
 ├── pom.xml
 ├── .env
 ├── docker-compose.yml
 └── .gitignore
 ```
 
+## API Versioning
+
+PayFlow uses URL path-based API versioning to ensure backward compatibility and smooth API evolution.
+
+- **Current Version**: v1
+- **Base Path**: `/api/v1/`
+- **Versioning Strategy**: [docs/api-versioning-strategy.md](docs/api-versioning-strategy.md)
+
+### Example Endpoints
+
+```
+POST   /api/v1/auth/register
+POST   /api/v1/auth/login
+GET    /api/v1/wallets/me
+GET    /api/v1/wallets/me/balance?currency=USD
+POST   /api/v1/transactions/deposit
+POST   /api/v1/transactions/withdraw
+POST   /api/v1/transactions/transfer
+GET    /api/v1/transactions/history
+GET    /api/v1/admin/users
+```
+
+For migration from unversioned API, see [Migration Guide](docs/migrations/v0-to-v1-migration.md).
+
 ## Security Implementation
 
 ### JWT Authentication Flow
 
-1. **User Registration** (`POST /api/auth/register`)
+1. **User Registration** (`POST /api/v1/auth/register`)
    - Accepts email, password, fullName
    - Password is hashed using BCrypt
    - Wallet is automatically created for the user
 
-2. **User Login** (`POST /api/auth/login`)
+2. **User Login** (`POST /api/v1/auth/login`)
    - Accepts email and password
    - Password is verified using BCrypt password encoder
    - On successful authentication, JWT token is generated with user ID
    - Token is returned in response
 
 3. **Protected Endpoints**
-   - All endpoints except `/api/auth/register` and `/api/auth/login` require valid JWT
+   - All endpoints except `/api/v1/auth/register` and `/api/v1/auth/login` require valid JWT
    - Token must be sent in `Authorization` header: `Bearer <token>`
    - JwtAuthenticationFilter validates token on each request
 
