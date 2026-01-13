@@ -49,3 +49,21 @@ temp/
 *.bak
 usefulCommands.txt
 ROADMAP.md
+
+# ============================
+# Terraform
+# ============================
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfplan
