@@ -1,0 +1,83 @@
+# ============================
+# Production Profile Configuration
+# ============================
+
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        generate_statistics: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: WARN
+    com.payflow: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+# ============================
+# Production-specific settings
+# ============================
+app:
+  jwt:
+    # JWT_SECRET comes from environment variable (AWS Secrets Manager)
+    expiration: 86400000  # 24 hours
+
+  security:
+    cors:
+      allowed-origins:
+        - https://yourdomain.com
+        - https://www.yourdomain.com
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers:
+        - '*'
+      allow-credentials: true
+      max-age: 3600
+
+  rate-limit:
+    enabled: true
+    ip-capacity: 5
+    ip-refill-rate: 5
+    ip-refill-duration-minutes: 1
+    user-capacity: 100
+    user-refill-rate: 100
+    user-refill-duration-minutes: 1
+
+  exchange-rate:
+    api-url: ${EXCHANGE_RATE_API_URL:https://api.exchangerate-api.com/v4/latest}
+    # EXCHANGE_RATE_API_KEY comes from environment variable
+    cache-duration-minutes: 60  # Cache longer in production
+
+# ============================
+# Actuator - restrict in production
+# ============================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  metrics:
+    export:
+      cloudwatch:
+        enabled: true
+        namespace: PayFlow
+        step: 1m
