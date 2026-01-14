@@ -61,30 +61,6 @@ wallet-api/
 └── .gitignore
 ```
 
-## API Versioning
-
-PayFlow uses URL path-based API versioning to ensure backward compatibility and smooth API evolution.
-
-- **Current Version**: v1
-- **Base Path**: `/api/v1/`
-- **Versioning Strategy**: [docs/api-versioning-strategy.md](docs/api-versioning-strategy.md)
-
-### Example Endpoints
-
-```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-GET    /api/v1/wallets/me
-GET    /api/v1/wallets/me/balance?currency=USD
-POST   /api/v1/transactions/deposit
-POST   /api/v1/transactions/withdraw
-POST   /api/v1/transactions/transfer
-GET    /api/v1/transactions/history
-GET    /api/v1/admin/users
-```
-
-For migration from unversioned API, see [Migration Guide](docs/migrations/v0-to-v1-migration.md).
-
 ## Security Implementation
 
 ### JWT Authentication Flow
@@ -122,7 +98,6 @@ GlobalExceptionHandler provides centralized exception handling:
 - Java 21+
 - Maven 3.8+
 - Docker & Docker Compose
-- WSL (for Windows users)
 
 ### Environment Setup
 
