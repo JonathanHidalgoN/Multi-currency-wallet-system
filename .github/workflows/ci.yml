@@ -1,0 +1,55 @@
+# name: CI - Build and Test
+#
+# on:
+#   pull_request:
+#     branches: [master, main, develop]
+#   push:
+#     branches: [develop]
+#
+# jobs:
+#   test:
+#     name: Run Tests
+#     runs-on: ubuntu-latest
+#
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#
+#       - name: Set up Java 21
+#         uses: actions/setup-java@v4
+#         with:
+#           java-version: '21'
+#           distribution: 'temurin'
+#           cache: 'maven'
+#
+#       - name: Run tests
+#         run: mvn test -B
+#
+#       - name: Upload test results
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results
+#           path: target/surefire-reports/
+#
+#   build:
+#     name: Build Docker Image
+#     needs: test
+#     runs-on: ubuntu-latest
+#
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
+#
+#       - name: Build Docker image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           file: ./Dockerfile
+#           push: false
+#           tags: payflow/wallet-api:${{ github.sha }}
+#           cache-from: type=gha
+#           cache-to: type=gha,mode=max
